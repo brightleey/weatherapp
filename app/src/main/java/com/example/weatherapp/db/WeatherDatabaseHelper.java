@@ -9,25 +9,26 @@ import android.widget.Toast;
  * Created by Administrator on 2017/4/24.
  */
 
-public class MyDatabaseHelper extends SQLiteOpenHelper {
+public class WeatherDatabaseHelper extends SQLiteOpenHelper {
     private Context mContext;
     private final static String CREATE_PROVINCE = "create table province("
             +"id integer primary key autoincrement, "
-            +"provinceNmae text, "
-            +"provinceCode text)";
+            +"province_name text, "
+            +"province_code integer)";
     private final static String CREATE_CITY = "create table city("
             +"id integer primary key autoincrement, "
-            +"cityName text, "
-            +"cityCode text, "
-            +"provinceId integer"
+            +"city_name text, "
+            +"city_code integer, "
+            +"province_id integer"
             +")";
     private final static String CREATE_COUNTY = "create table county("
             +"id integer primary key autoincrement, "
-            +"countyName text, "
-            +"countyCode text, "
-            +"cityId integer"
+            +"county_name text, "
+            +"county_code integer, "
+            +"city_id integer," +
+            "weather_id text"
             +")";
-    public MyDatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+    public WeatherDatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         mContext = context;
     }
@@ -42,6 +43,9 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        
+        db.execSQL("drop table if exists province");
+        db.execSQL("drop table if exists city");
+        db.execSQL("drop table if exists county");
+        onCreate(db);
     }
 }

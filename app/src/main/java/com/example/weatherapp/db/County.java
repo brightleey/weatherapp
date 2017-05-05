@@ -5,8 +5,8 @@ package com.example.weatherapp.db;
  */
 
 public class County {
-    private int id,cityId;
-    private String countyName,countyCode,weatherId;
+    private int id,cityId,countyCode;
+    private String countyName,weatherId;
 
     public void setId(int id) {
         this.id = id;
@@ -20,7 +20,7 @@ public class County {
         this.countyName = countyName;
     }
 
-    public void setCountyCode(String countyCode) {
+    public void setCountyCode(int countyCode) {
         this.countyCode = countyCode;
     }
 
@@ -40,7 +40,7 @@ public class County {
         return countyName;
     }
 
-    public String getCountyCode() {
+    public int getCountyCode() {
         return countyCode;
     }
 

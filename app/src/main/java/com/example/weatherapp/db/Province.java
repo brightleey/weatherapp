@@ -5,11 +5,10 @@ package com.example.weatherapp.db;
  */
 
 public class Province {
-    private int id;
+    private int id,provinceCode;
     private String provinceName;
-    private String provinceCode;
 
-    public void setProvinceCode(String provinceCode) {
+    public void setProvinceCode(int provinceCode) {
         this.provinceCode = provinceCode;
     }
 
@@ -29,7 +28,7 @@ public class Province {
         return provinceName;
     }
 
-    public String getProvinceCode() {
+    public int getProvinceCode() {
         return provinceCode;
     }
 }

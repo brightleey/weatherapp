@@ -1,7 +1,11 @@
 package com.example.weatherapp;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -66,6 +70,8 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
 
     private WeatherDB weatherDB;
 
+    SharedPreferences.Editor editor;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.choose_area, container, false);
@@ -77,6 +83,8 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         areaList = (ListView)view.findViewById(R.id.area_list);
         arrayAdapter = new ArrayAdapter<>(mContext, android.R.layout.simple_list_item_1, areaDataList);
         areaList.setAdapter(arrayAdapter);
+        backBtn.setOnClickListener(this);
+
         return view;
     }
 
@@ -84,6 +92,11 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.back_btn:
+                if (currentLevel == LEVEL_COUNTY){
+                    queryCities();
+                }else if (currentLevel == LEVEL_CITY){
+                    queryProvinces();
+                }
                 break;
         }
     }
@@ -94,7 +107,27 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         areaList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (currentLevel == LEVEL_PROVINCE){
+                    selectedProvince =  provinceList.get(position);
+                    queryCities();
+                }else if (currentLevel == LEVEL_CITY){
+                    selectedCity = cityList.get(position);
+                    queryCounties();
+                }else if (currentLevel == LEVEL_COUNTY){
+                    County county = countyList.get(position);
+                    editor = PreferenceManager.getDefaultSharedPreferences(mContext).edit();
+                    String weatherId = county.getWeatherId();
+                    String areaName = county.getCountyName();
+                    editor.putString("area_name", areaName);
+                    editor.putString("weather_id", weatherId);
+                    editor.apply();
 
+                    Intent intent = new Intent(mContext, WeatherActivity.class);
+                    intent.putExtra("weather_id", weatherId);
+                    intent.putExtra("area_name", areaName);
+                    mContext.startActivity(intent);
+                    getActivity().finish();
+                }
             }
         });
         queryProvinces();
@@ -107,7 +140,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         if (provinceList.size() > 0){
             areaDataList.clear();
             for (Province province : provinceList){
-                areaDataList.add(province.getProvinceName());
+                areaDataList.add("[ "+province.getId()+" ] "+ province.getProvinceName());
             }
             arrayAdapter.notifyDataSetChanged();
             areaList.setSelection(0);
@@ -119,13 +152,13 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     }
 
     private void queryCities(){
-        areaName.setText(selectedProvince.getProvinceName());
+        areaName.setText("[ "+selectedProvince.getId()+" ] "+selectedProvince.getProvinceName());
         backBtn.setVisibility(View.VISIBLE);
         cityList = weatherDB.loadCity(selectedProvince.getId());
         if (cityList.size() > 0){
             areaDataList.clear();
             for (City city : cityList){
-                areaDataList.add(city.getCityName());
+                areaDataList.add("[ "+city.getId()+" ] " + city.getCityName());
             }
             arrayAdapter.notifyDataSetChanged();
             areaList.setSelection(0);
@@ -136,13 +169,13 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     }
 
     private void queryCounties(){
-        areaName.setText(selectedCity.getCityName());
-        backBtn.setVisibility(View.GONE);
+        areaName.setText("[ "+selectedCity.getId()+" ] "+selectedCity.getCityName());
+        backBtn.setVisibility(View.VISIBLE);
         countyList = weatherDB.loadCounty(selectedCity.getId());
         if (countyList.size() > 0){
             areaDataList.clear();
             for (County county : countyList){
-                areaDataList.add(county.getCountyName());
+                areaDataList.add("[ "+county.getId()+" ] " + county.getCountyName());
             }
             arrayAdapter.notifyDataSetChanged();
             areaList.setSelection(0);
@@ -179,7 +212,6 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
                             }else if (level == LEVEL_COUNTY){
                                 queryCounties();
                             }
-                            Toast.makeText(mContext, "加载成功", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }

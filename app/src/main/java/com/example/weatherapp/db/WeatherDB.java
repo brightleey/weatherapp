@@ -48,6 +48,7 @@ public class WeatherDB {
                 Province province = new Province();
                 province.setProvinceCode(cursor.getInt(cursor.getColumnIndex("province_code")));
                 province.setProvinceName(cursor.getString(cursor.getColumnIndex("province_name")));
+                province.setId(cursor.getInt(cursor.getColumnIndex("id")));
                 provinceList.add(province);
             } while (cursor.moveToNext());
         }
@@ -73,6 +74,7 @@ public class WeatherDB {
                 city.setCityCode(cursor.getInt(cursor.getColumnIndex("city_code")));
                 city.setCityName(cursor.getString(cursor.getColumnIndex("city_name")));
                 city.setProvinceId(cursor.getInt(cursor.getColumnIndex("province_id")));
+                city.setId(cursor.getInt(cursor.getColumnIndex("id")));
                 cityList.add(city);
             } while (cursor.moveToNext());
         }
@@ -100,6 +102,7 @@ public class WeatherDB {
                 county.setCountyName(cursor.getString(cursor.getColumnIndex("county_name")));
                 county.setCityId(cursor.getInt(cursor.getColumnIndex("city_id")));
                 county.setWeatherId(cursor.getString(cursor.getColumnIndex("weather_id")));
+                county.setId(cursor.getInt(cursor.getColumnIndex("id")));
                 countyList.add(county);
             } while (cursor.moveToNext());
         }

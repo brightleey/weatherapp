@@ -23,6 +23,6 @@ public class WeatherActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String weatherId = intent.getStringExtra("weather_id");
         String areaName = intent.getStringExtra("area_name");
-        tips.setText("这里是WeatherActivity，weather_id："+weatherId+"，area_name："+ areaName);
+        tips.setText("这个是WeatherActivity，weather_id："+weatherId+"，area_name："+ areaName);
     }
 }

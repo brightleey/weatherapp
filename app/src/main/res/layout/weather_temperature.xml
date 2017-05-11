@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="end"
+    android:layout_margin="10dp">
+
+    <ImageView
+        android:id="@+id/wea_icon"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/a100"
+        android:layout_gravity="center_vertical"/>
+
+    <LinearLayout
+        android:id="@+id/wea_info_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+
+        <TextView
+            android:id="@+id/wea_degree"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="28℃"
+            android:textColor="#fff"
+            android:textSize="80sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/wea_wet"
+            android:text="湿度"
+            android:textColor="#fff"
+            android:layout_gravity="end"/>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -115,16 +115,8 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
                     queryCounties();
                 }else if (currentLevel == LEVEL_COUNTY){
                     County county = countyList.get(position);
-                    editor = PreferenceManager.getDefaultSharedPreferences(mContext).edit();
-                    String weatherId = county.getWeatherId();
-                    String areaName = county.getCountyName();
-                    editor.putString("area_name", areaName);
-                    editor.putString("weather_id", weatherId);
-                    editor.apply();
-
                     Intent intent = new Intent(mContext, WeatherActivity.class);
-                    intent.putExtra("weather_id", weatherId);
-                    intent.putExtra("area_name", areaName);
+                    intent.putExtra("weather_id", county.getWeatherId());
                     mContext.startActivity(intent);
                     getActivity().finish();
                 }

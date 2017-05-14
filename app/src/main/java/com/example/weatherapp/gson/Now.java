@@ -12,6 +12,7 @@ public class Now {
     public class WeatherInfo{
         @SerializedName("code")
         public String weatherCode;
+        @SerializedName("txt")
         public String weatherText;
     }
     @SerializedName("fl")

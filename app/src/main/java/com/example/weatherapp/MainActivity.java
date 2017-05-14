@@ -18,11 +18,9 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherId = pref.getString("weather_id", "");
-        String areaName = pref.getString("area_name", "");
         if (!TextUtils.isEmpty(weatherId)){
             Intent intent = new Intent(this, WeatherActivity.class);
             intent.putExtra("weather_id", weatherId);
-            intent.putExtra("area_name", areaName);
             startActivity(intent);
             finish();
         }

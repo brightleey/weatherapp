@@ -6,35 +6,70 @@
     android:gravity="end"
     android:layout_margin="10dp">
 
-    <ImageView
-        android:id="@+id/wea_icon"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@drawable/a100"
-        android:layout_gravity="center_vertical"/>
-
     <LinearLayout
-        android:id="@+id/wea_info_layout"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
+        android:layout_weight="2"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_gravity="center_vertical"
         >
 
         <TextView
-            android:id="@+id/wea_degree"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="28℃"
+            android:id="@+id/wea_date"
+            android:text="5月14日，星期日"
+            android:textColor="#fff"/>
+
+        <TextView
+            android:id="@+id/wea_weather"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="多云"
+            android:textColor="#fff" />
+
+        <TextView
+            android:id="@+id/wea_aqi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="空气指数 46"
+            android:textColor="#fff" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/wea_info_layout"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="top"
+        >
+        <ImageView
+            android:id="@+id/wea_icon"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:src="@drawable/a100"
+            android:layout_marginRight="10dp"
+            android:layout_gravity="center_vertical"
+            />
+
+        <TextView
+            android:id="@+id/wea_temperature"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="28"
             android:textColor="#fff"
-            android:textSize="80sp" />
+            android:textSize="70sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/wea_wet"
-            android:text="湿度"
-            android:textColor="#fff"
-            android:layout_gravity="end"/>
+            android:text="℃"
+            android:textSize="30sp"
+            android:textColor="#fff"/>
+
 
     </LinearLayout>
 

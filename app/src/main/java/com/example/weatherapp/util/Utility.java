@@ -31,15 +31,15 @@ public class Utility {
                 int eventType = xmlPullParser.getEventType();
                 while (eventType != xmlPullParser.END_DOCUMENT){
                     switch (eventType){
-                        case xmlPullParser.START_DOCUMENT:{
+                        case XmlPullParser.START_DOCUMENT:{
 
                             break;
                         }
-                        case xmlPullParser.START_TAG:{
+                        case XmlPullParser.START_TAG:{
 
                             break;
                         }
-                        case xmlPullParser.END_DOCUMENT:{
+                        case XmlPullParser.END_DOCUMENT:{
 
                         }
                     }

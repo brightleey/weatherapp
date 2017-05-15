@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -94,7 +95,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         }
         String weatherBg = spf.getString("weather_bg", "");
         if (!TextUtils.isEmpty(weatherBg)){
-            Glide.with(this).load(weatherBg).into(weaBg);
+            Glide.with(this).load(weatherBg).centerCrop().into(weaBg);
         }else {
             loadBackgroundImage();
         }
@@ -133,11 +134,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     try {
                         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                         DocumentBuilder builder = factory.newDocumentBuilder();
-                        Document document = builder.parse(new InputSource(responseText));
+                        Document document = builder.parse(new InputSource(new StringReader(responseText)));
                         Element root = document.getDocumentElement();
+
                         NodeList nodeList = root.getElementsByTagName("image");
                         Node node = nodeList.item(0);
-                        final String bgPath = baseURL + node.getNodeValue();
+                        //Log.d(TAG, String.valueOf(node.getChildNodes().item(3).getTextContent()));
+
+                        final String bgPath = baseURL + node.getChildNodes().item(3).getTextContent();
                         SharedPreferences spf = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
                         SharedPreferences.Editor editor = spf.edit();
                         editor.putString("weather_bg", bgPath);
@@ -145,7 +149,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Glide.with(WeatherActivity.this).load(bgPath).into(weaBg);
+                                Glide.with(WeatherActivity.this).load(bgPath).centerCrop().into(weaBg);
                             }
                         });
                     } catch (Exception e) {

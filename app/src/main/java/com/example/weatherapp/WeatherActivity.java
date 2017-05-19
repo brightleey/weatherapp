@@ -11,6 +11,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -20,7 +22,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.weatherapp.adapter.WeatherAdapter;
+import com.example.weatherapp.adapter.WeatherItem;
+import com.example.weatherapp.gson.Daily;
+import com.example.weatherapp.gson.Hourly;
 import com.example.weatherapp.gson.Weather;
+import com.example.weatherapp.recyclerview.ItemSpaceDecoration;
 import com.example.weatherapp.util.HttpCallbackListener;
 import com.example.weatherapp.util.HttpUtil;
 import com.google.gson.Gson;
@@ -35,8 +42,11 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import java.io.StringReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -57,6 +67,11 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private ImageView menuIcon, weaIcon, weaBg;
 
     private String weatherId;
+
+    //weather_daily
+    private RecyclerView weatherDailyRecyclerView;
+    private List<WeatherItem> dailyData = new ArrayList<>();
+    private WeatherAdapter weatherAdapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -80,6 +95,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         weaDate = (TextView) findViewById(R.id.wea_date);
         weaAqi = (TextView) findViewById(R.id.wea_aqi);
         weaBg = (ImageView) findViewById(R.id.wea_bg);
+
+        weatherDailyRecyclerView = (RecyclerView) findViewById(R.id.daily_recyclerview);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        weatherDailyRecyclerView.setLayoutManager(layoutManager);
+        weatherAdapter = new WeatherAdapter(dailyData);
+        weatherDailyRecyclerView.addItemDecoration(new ItemSpaceDecoration(10));
+        weatherDailyRecyclerView.setAdapter(weatherAdapter);
         //add listener
         menuIcon.setOnClickListener(this);
         //get para
@@ -111,8 +134,24 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             weaDate.setText(new SimpleDateFormat("M月dd日 E", Locale.SIMPLIFIED_CHINESE).format(new Date()));
             weaWeather.setText(weather.now.weatherInfo.weatherText);
             weaAqi.setText("AQI " + weather.aqi.airAquality.aqi + "("+weather.aqi.airAquality.aqitxt+")");
-            //weaFengsu.setText(weather.now.windInfo.fengxiang + weather.now.windInfo.fengli);
-            //weaShidu.setText("湿度 " + weather.now.xiangduishidu + "%");
+
+            //daily
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat sdf2 = new SimpleDateFormat("E");
+            for(Daily daily : weather.dailyList){
+                int weaImageId = getResources().getIdentifier("wea_" + daily.weatherInfo.codeDay, "drawable", getPackageName());
+                Date dailyDate = null;
+                try {
+                    dailyDate = sdf.parse(daily.date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                WeatherItem weatherItem = new WeatherItem(daily.temperature.max, daily.temperature.min, sdf2.format(dailyDate), weaIconId);
+                dailyData.add(weatherItem);
+            }
+            if (dailyData.size() > 0){
+                weatherAdapter.notifyDataSetChanged();
+            }
         }
     }
 

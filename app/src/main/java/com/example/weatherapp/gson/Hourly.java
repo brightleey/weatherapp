@@ -13,7 +13,9 @@ public class Hourly {
         public String code;
         public String txt;
     }
+    @SerializedName("date")
+    public String time;
     @SerializedName("tmp")
-    public String temperature;    public String date;
+    public String temperature;
 
 }

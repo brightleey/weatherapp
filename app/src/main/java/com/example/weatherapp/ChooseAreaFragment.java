@@ -132,7 +132,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         if (provinceList.size() > 0){
             areaDataList.clear();
             for (Province province : provinceList){
-                areaDataList.add("[ "+province.getId()+" ] "+ province.getProvinceName());
+                areaDataList.add(province.getProvinceName());
             }
             arrayAdapter.notifyDataSetChanged();
             areaList.setSelection(0);
@@ -144,13 +144,13 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     }
 
     private void queryCities(){
-        areaName.setText("[ "+selectedProvince.getId()+" ] "+selectedProvince.getProvinceName());
+        areaName.setText(selectedProvince.getProvinceName());
         backBtn.setVisibility(View.VISIBLE);
         cityList = weatherDB.loadCity(selectedProvince.getId());
         if (cityList.size() > 0){
             areaDataList.clear();
             for (City city : cityList){
-                areaDataList.add("[ "+city.getId()+" ] " + city.getCityName());
+                areaDataList.add(city.getCityName());
             }
             arrayAdapter.notifyDataSetChanged();
             areaList.setSelection(0);
@@ -161,13 +161,13 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     }
 
     private void queryCounties(){
-        areaName.setText("[ "+selectedCity.getId()+" ] "+selectedCity.getCityName());
+        areaName.setText(selectedCity.getCityName());
         backBtn.setVisibility(View.VISIBLE);
         countyList = weatherDB.loadCounty(selectedCity.getId());
         if (countyList.size() > 0){
             areaDataList.clear();
             for (County county : countyList){
-                areaDataList.add("[ "+county.getId()+" ] " + county.getCountyName());
+                areaDataList.add(county.getCountyName());
             }
             arrayAdapter.notifyDataSetChanged();
             areaList.setSelection(0);

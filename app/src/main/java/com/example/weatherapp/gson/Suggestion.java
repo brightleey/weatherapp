@@ -11,8 +11,6 @@ public class Suggestion {
     public ComfortIndex comfortIndex;
     @SerializedName("cw")
     public CarWashIndex carWashIndex;
-    @SerializedName("air")
-    public AirIndex airIndex;
     @SerializedName("drsg")
     public DressIndex dressIndex;
     @SerializedName("flu")

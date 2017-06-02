@@ -25,10 +25,11 @@ public class IndexAdapter extends RecyclerView.Adapter<IndexAdapter.IndexViewHol
     }
 
     static class IndexViewHolder extends RecyclerView.ViewHolder{
-        TextView weaIndexTxt;
+        TextView weaIndexTxt, weaIndexName;
         ImageView weaIndexImage;
         public IndexViewHolder(View view){
             super(view);
+            weaIndexName = (TextView) view.findViewById((R.id.wea_index_name));
             weaIndexTxt = (TextView) view.findViewById(R.id.wea_index_txt);
             weaIndexImage = (ImageView) view.findViewById(R.id.wea_index_image);
         }
@@ -44,6 +45,7 @@ public class IndexAdapter extends RecyclerView.Adapter<IndexAdapter.IndexViewHol
     @Override
     public void onBindViewHolder(IndexViewHolder viewHolder, int i) {
         IndexItem indexItem = dataList.get(i);
+        viewHolder.weaIndexName.setText(indexItem.getIndexName());
         viewHolder.weaIndexImage.setImageResource(indexItem.getImageId());
         viewHolder.weaIndexTxt.setText(indexItem.getTxt());
     }

@@ -2,6 +2,7 @@ package com.example.weatherapp;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -31,8 +33,10 @@ import com.example.weatherapp.gson.Daily;
 import com.example.weatherapp.gson.Hourly;
 import com.example.weatherapp.gson.Suggestion;
 import com.example.weatherapp.gson.Weather;
+import com.example.weatherapp.util.DividerItemDecoration;
 import com.example.weatherapp.util.HttpCallbackListener;
 import com.example.weatherapp.util.HttpUtil;
+import com.example.weatherapp.view.LineChart;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -49,6 +53,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -69,6 +74,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private ImageView menuIcon, weaIcon, weaBg;
 
     private String weatherId;
+
+    private LineChart dailyLineChart, hourlyLineChart;
 
     //weather_daily
     private RecyclerView weatherDailyRecyclerView;
@@ -113,26 +120,27 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         weaAqi = (TextView) findViewById(R.id.wea_aqi);
         weaBg = (ImageView) findViewById(R.id.wea_bg);
         //daily
-        weatherDailyRecyclerView = (RecyclerView) findViewById(R.id.daily_recyclerview);
-        GridLayoutManager layoutManager = new GridLayoutManager(this, DEFAULT_DISPLAY_DAYS_COUNT);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        weatherDailyRecyclerView.setLayoutManager(layoutManager);
-        dailyAdapter = new DailyAdapter(dailyData);
-//        weatherDailyRecyclerView.addItemDecoration(new ItemSpaceDecoration(25));
-        weatherDailyRecyclerView.setAdapter(dailyAdapter);
+        dailyLineChart = (LineChart) findViewById(R.id.daily_linechart);
 
         //hourly
         weatherHourlyRecyclerView = (RecyclerView) findViewById(R.id.hourly_recyclerview);
-        GridLayoutManager horulyLayoutManager = new GridLayoutManager(this, DEFAULT_DISPLAY_HOURS_COUNT);
+        GridLayoutManager horulyLayoutManager = new GridLayoutManager(this,
+                DEFAULT_DISPLAY_HOURS_COUNT);
         weatherHourlyRecyclerView.setLayoutManager(horulyLayoutManager);
         hourlyAdapter = new HourlyAdapter(hourlyData);
         weatherHourlyRecyclerView.setAdapter(hourlyAdapter);
 
         //index
         weatherIndexRecyclerView = (RecyclerView) findViewById(R.id.index_recyclerview);
-        GridLayoutManager indexLayoutManager = new GridLayoutManager(this, DEFAULT_DISPLAY_INDEX_COUNT);
+        GridLayoutManager indexLayoutManager = new GridLayoutManager(this,
+                DEFAULT_DISPLAY_INDEX_COUNT);
         weatherIndexRecyclerView.setLayoutManager(indexLayoutManager);
+        weatherIndexRecyclerView.addItemDecoration(new DividerItemDecoration(this,
+                DividerItemDecoration.HORIZONTAL_LIST));
+        weatherIndexRecyclerView.addItemDecoration(new DividerItemDecoration(this,
+                DividerItemDecoration.VERTICAL_LIST));
         indexAdapter = new IndexAdapter(indexData);
+        weatherIndexRecyclerView.setAdapter(indexAdapter);
 
         //add listener
         menuIcon.setOnClickListener(this);
@@ -158,21 +166,40 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private void showWeatherInfo(Weather weather) {
         if (weather != null){
 
-            int weaIconId = getResources().getIdentifier("wea_"+weather.now.weatherInfo.weatherCode, "drawable", getPackageName());
+            int weaIconId = getResources().getIdentifier("wea_"
+                    + weather.now.weatherInfo.weatherCode, "drawable", getPackageName());
             weaAddr.setText(weather.basic.cityName);
             weaIcon.setImageResource(weaIconId);
             weaTemp.setText(weather.now.wendu);
-            weaDate.setText(new SimpleDateFormat("M月dd日 E", Locale.SIMPLIFIED_CHINESE).format(new Date()));
-            weaWeather.setText(weather.now.weatherInfo.weatherText + " " + weather.now.windInfo.fengxiang);
-            weaAqi.setText("空气" + weather.aqi.airAquality.aqitxt + "  PM2.5 " + weather.aqi.airAquality.pm25);
+            weaDate.setText(new SimpleDateFormat("M月dd日 E",
+                    Locale.SIMPLIFIED_CHINESE).format(new Date()));
+            weaWeather.setText(weather.now.weatherInfo.weatherText + " "
+                    + weather.now.windInfo.fengxiang);
+            weaAqi.setText("空气" + weather.aqi.airAquality.aqitxt + "  PM2.5 "
+                    + weather.aqi.airAquality.pm25);
 
             //daily
+            int maxTemp = Integer.parseInt(weather.dailyList.get(0).temperature.max),
+                    minTemp = Integer.parseInt(weather.dailyList.get(0).temperature.min);
+            String[] yAxisTxt, xAxisTxt = new String[weather.dailyList.size()];
+            int[] xAxisIcon = new int[weather.dailyList.size()];
+            List<HashMap<String, String>> dailyWeatherData = new ArrayList<>();
+            HashMap<String, String> maxTempHashMap = new HashMap<>();
+            HashMap<String, String> minTempHashMap = new HashMap<>();
+
+
             SimpleDateFormat dailyDateFormat = new SimpleDateFormat("yyyy-MM-dd");
             SimpleDateFormat dailyDateFormat2 = new SimpleDateFormat("E", Locale.CHINA);
             String today = dailyDateFormat2.format(new Date());
             int counter =0;
             for(Daily daily : weather.dailyList){
-                int weaImageId = getResources().getIdentifier("wea_" + daily.weatherInfo.codeDay, "drawable", getPackageName());
+                if (counter > 0){
+                    maxTemp = Math.max(Integer.parseInt(daily.temperature.max), maxTemp);
+                    minTemp = Math.min(Integer.parseInt(daily.temperature.min), minTemp);
+                }
+
+                int weaImageId = getResources().getIdentifier("wea_"
+                        + daily.weatherInfo.codeDay, "drawable", getPackageName());
                 Date dailyDate = null;
                 try {
                     dailyDate = dailyDateFormat.parse(daily.date);
@@ -183,33 +210,83 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 if (dailyDateLocal.equals(today)){
                     dailyDateLocal = "今天";
                 }
-                DailyItem dailyItem = new DailyItem(daily.temperature.max, daily.temperature.min, dailyDateLocal, weaImageId, daily.weatherInfo.txtDay);
-                dailyData.add(dailyItem);
+
+
+                maxTempHashMap.put(dailyDateLocal, daily.temperature.max + "℃");
+                minTempHashMap.put(dailyDateLocal, daily.temperature.min + "℃");
+
+                xAxisIcon[counter] = weaIconId;
+                xAxisTxt[counter] = dailyDateLocal;
+
                 counter ++;
-                if (counter >= DEFAULT_DISPLAY_DAYS_COUNT)break;;
+                //if (counter >= DEFAULT_DISPLAY_DAYS_COUNT)break;;
             }
-            if (dailyData.size() > 0){
-                dailyAdapter.notifyDataSetChanged();
+            dailyWeatherData.add(maxTempHashMap);
+            dailyWeatherData.add(minTempHashMap);
+            yAxisTxt = new String[maxTemp - minTemp + 1];
+            int j = 0;
+            for (int i = maxTemp; i >= minTemp; i--){
+                yAxisTxt[j] = i + "℃";
+                j ++;
             }
+            dailyLineChart.setAxisTextSize(14);
+            dailyLineChart.setShowYAxis(false);
+            dailyLineChart.setAxisTextColor("#ffffff");
+            dailyLineChart.setLinePaintColor(new String[]{"#ffffff", "#F7F7F7"});
+            dailyLineChart.setxAxisPointsTxt(xAxisTxt);
+            dailyLineChart.setyAxisPointsTxt(yAxisTxt);
+            //dailyLineChart.setxAxisIcon(xAxisIcon);
+            dailyLineChart.setDataList(dailyWeatherData);
+
             //hourly
             SimpleDateFormat hourlyDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             SimpleDateFormat hourlyDateFormat2 = new SimpleDateFormat("HH:mm");
             for (Hourly hourly : weather.hourlyList){
-                int hourlyImageId = getResources().getIdentifier("wea_" + hourly.weatherInfo.code, "drawable", getPackageName());
+                int hourlyImageId = getResources().getIdentifier("wea_" +
+                        hourly.weatherInfo.code, "drawable", getPackageName());
                 Date hourlyDate = null;
                 try {
                     hourlyDate = hourlyDateFormat.parse(hourly.time);
                 }catch (ParseException e){
                     e.printStackTrace();
                 }
-                HourlyItem hourlyItem= new HourlyItem(hourlyDateFormat2.format(hourlyDate), hourlyImageId, hourly.temperature, hourly.weatherInfo.txt);
+                HourlyItem hourlyItem= new HourlyItem(hourlyDateFormat2.format(hourlyDate),
+                        hourlyImageId, hourly.temperature, hourly.weatherInfo.txt);
                 hourlyData.add(hourlyItem);
             }
             if (hourlyData.size() > 0){
                 hourlyAdapter.notifyDataSetChanged();
             }
             //index
-//            for (Suggestion suggestion : weather.suggestion.)
+            IndexItem comfortIndex = new IndexItem("舒适度",
+                    weather.suggestion.comfortIndex.shortDes,
+                    weather.suggestion.comfortIndex.detailTxt, R.drawable.wea_507);
+            IndexItem carWashIndex = new IndexItem("洗车",
+                    weather.suggestion.carWashIndex.shortDes,
+                    weather.suggestion.carWashIndex.detailTxt, R.drawable.wea_507);
+            IndexItem dressIndex = new IndexItem("穿衣",
+                    weather.suggestion.dressIndex.shortDes,
+                    weather.suggestion.dressIndex.detailTxt, R.drawable.wea_507);
+            IndexItem coldIndex = new IndexItem("感冒",
+                    weather.suggestion.coldIndex.shortDes,
+                    weather.suggestion.coldIndex.detailTxt, R.drawable.wea_507);
+            IndexItem sportIndex = new IndexItem("运动",
+                    weather.suggestion.sportIndex.shortDes,
+                    weather.suggestion.sportIndex.detailTxt, R.drawable.wea_507);
+            IndexItem travelIndex = new IndexItem("旅游",
+                    weather.suggestion.travelIndex.shortDes,
+                    weather.suggestion.travelIndex.detailTxt, R.drawable.wea_507);
+            IndexItem uvIndex = new IndexItem("紫外线",
+                    weather.suggestion.uvIndex.shortDes,
+                    weather.suggestion.uvIndex.detailTxt, R.drawable.wea_507);
+            indexData.add(comfortIndex);
+            indexData.add(carWashIndex);
+            indexData.add(dressIndex);
+            indexData.add(coldIndex);
+            indexData.add(sportIndex);
+            indexData.add(travelIndex);
+            indexData.add(uvIndex);
+            indexAdapter.notifyDataSetChanged();
         }
     }
 
@@ -277,10 +354,12 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private void requestWeather(final String weatherId){
         if (!TextUtils.isEmpty(weatherId)) {
-            HttpUtil.httpRequest("https://free-api.heweather.com/v5/weather?city=" + weatherId + "&key=" + WEATHER_API_KEY, new HttpCallbackListener() {
+            HttpUtil.httpRequest("https://free-api.heweather.com/v5/weather?city="
+                    + weatherId + "&key=" + WEATHER_API_KEY, new HttpCallbackListener() {
                 @Override
                 public void onSuccess(final String responseText) {
-                    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
+                    SharedPreferences.Editor editor = PreferenceManager.
+                            getDefaultSharedPreferences(WeatherActivity.this).edit();
                     editor.putString("weather_id", weatherId);
                     editor.putString(weatherId, responseText);
                     editor.apply();

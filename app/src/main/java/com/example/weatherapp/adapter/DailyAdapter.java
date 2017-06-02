@@ -20,9 +20,16 @@ public class DailyAdapter extends RecyclerView.Adapter<DailyAdapter.WeatherViewH
 
     private List<DailyItem> dataList = new ArrayList<>();
 
-    public DailyAdapter(List<DailyItem> data) {
+    private OnItemClickListener onItemClickListener;
+
+    public interface OnItemClickListener{
+        public void onItemClicked(DailyItem dailyItem, int position);
+    }
+    private View mView;
+    public DailyAdapter(List<DailyItem> data, OnItemClickListener onItemClickListener) {
         super();
-        dataList = data;
+        this.dataList = data;
+        this.onItemClickListener = onItemClickListener;
     }
 
     static class WeatherViewHolder extends RecyclerView.ViewHolder{
@@ -39,18 +46,26 @@ public class DailyAdapter extends RecyclerView.Adapter<DailyAdapter.WeatherViewH
 
     @Override
     public WeatherViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.daily_item, parent, false);
-        WeatherViewHolder viewHolder = new WeatherViewHolder(view);
+        mView = LayoutInflater.from(parent.getContext()).inflate(R.layout.daily_item, parent, false);
+        WeatherViewHolder viewHolder = new WeatherViewHolder(mView);
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(WeatherViewHolder holder, int position) {
-        DailyItem dailyItem = dataList.get(position);
+    public void onBindViewHolder(WeatherViewHolder holder, final int position) {
+        final DailyItem dailyItem = dataList.get(position);
         holder.weaImage.setImageResource(dailyItem.getWeaImgId());
         holder.weaMax.setText(dailyItem.getWeaMin() + "℃/" + dailyItem.getWeaMax() + "℃");
         holder.weaMin.setText(dailyItem.getWeaTxt());
         holder.weaDate.setText(dailyItem.getWeaDate());
+        if (onItemClickListener != null){
+            mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onItemClickListener.onItemClicked(dailyItem, position);
+                }
+            });
+        }
     }
 
     @Override

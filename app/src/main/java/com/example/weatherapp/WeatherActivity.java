@@ -123,12 +123,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         dailyLineChart = (LineChart) findViewById(R.id.daily_linechart);
 
         //hourly
-        weatherHourlyRecyclerView = (RecyclerView) findViewById(R.id.hourly_recyclerview);
-        GridLayoutManager horulyLayoutManager = new GridLayoutManager(this,
-                DEFAULT_DISPLAY_HOURS_COUNT);
-        weatherHourlyRecyclerView.setLayoutManager(horulyLayoutManager);
-        hourlyAdapter = new HourlyAdapter(hourlyData);
-        weatherHourlyRecyclerView.setAdapter(hourlyAdapter);
+        hourlyLineChart = (LineChart) findViewById(R.id.hourly_linechart);
 
         //index
         weatherIndexRecyclerView = (RecyclerView) findViewById(R.id.index_recyclerview);
@@ -157,9 +152,9 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         }
         String weatherBg = spf.getString("weather_bg", "");
         if (!TextUtils.isEmpty(weatherBg)){
-            Glide.with(this).load(weatherBg).centerCrop().into(weaBg);
+//            Glide.with(this).load(weatherBg).centerCrop().into(weaBg);
         }else {
-            loadBackgroundImage();
+//            loadBackgroundImage();
         }
     }
 
@@ -179,8 +174,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     + weather.aqi.airAquality.pm25);
 
             //daily
-            int maxTemp = Integer.parseInt(weather.dailyList.get(0).temperature.max),
-                    minTemp = Integer.parseInt(weather.dailyList.get(0).temperature.min);
+            int maxTemp = 0, minTemp = 0;
             String[] yAxisTxt, xAxisTxt = new String[weather.dailyList.size()];
             int[] xAxisIcon = new int[weather.dailyList.size()];
             List<HashMap<String, String>> dailyWeatherData = new ArrayList<>();
@@ -193,10 +187,13 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             String today = dailyDateFormat2.format(new Date());
             int counter =0;
             for(Daily daily : weather.dailyList){
-                if (counter > 0){
-                    maxTemp = Math.max(Integer.parseInt(daily.temperature.max), maxTemp);
-                    minTemp = Math.min(Integer.parseInt(daily.temperature.min), minTemp);
+
+                if (counter == 0){
+                    maxTemp = Integer.parseInt(daily.temperature.max);
+                    minTemp = Integer.parseInt(daily.temperature.min);
                 }
+                maxTemp = Math.max(Integer.parseInt(daily.temperature.max), maxTemp);
+                minTemp = Math.min(Integer.parseInt(daily.temperature.min), minTemp);
 
                 int weaImageId = getResources().getIdentifier("wea_"
                         + daily.weatherInfo.codeDay, "drawable", getPackageName());
@@ -215,7 +212,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 maxTempHashMap.put(dailyDateLocal, daily.temperature.max + "℃");
                 minTempHashMap.put(dailyDateLocal, daily.temperature.min + "℃");
 
-                xAxisIcon[counter] = weaIconId;
+                xAxisIcon[counter] = weaImageId;
                 xAxisTxt[counter] = dailyDateLocal;
 
                 counter ++;
@@ -229,19 +226,32 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 yAxisTxt[j] = i + "℃";
                 j ++;
             }
-            dailyLineChart.setAxisTextSize(14);
-            dailyLineChart.setShowYAxis(false);
-            dailyLineChart.setAxisTextColor("#ffffff");
-            dailyLineChart.setLinePaintColor(new String[]{"#ffffff", "#F7F7F7"});
+            //dailyLineChart.setAxisTextSize(16);
             dailyLineChart.setxAxisPointsTxt(xAxisTxt);
             dailyLineChart.setyAxisPointsTxt(yAxisTxt);
-            //dailyLineChart.setxAxisIcon(xAxisIcon);
+            dailyLineChart.setxAxisIcon(xAxisIcon);
+            dailyLineChart.setShowYAxis(false);
+            dailyLineChart.setAxisTextColor("#ffffff");
+            dailyLineChart.setLinePaintColor(new String[]{"#ffffff", "#BBFFFF"});
             dailyLineChart.setDataList(dailyWeatherData);
 
             //hourly
+            counter = 0;
+            String[] yAxisTxt2, xAxisTxt2 = new String[weather.hourlyList.size()];
+            int[] xAxisIcon2 = new int[weather.hourlyList.size()];
+            List<HashMap<String, String>> hourlyWeatherData = new ArrayList<>();
+            HashMap<String, String> hourlyData = new HashMap<>();
+            int maxTemp2 = 0, minTemp2 = 0;
+
             SimpleDateFormat hourlyDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             SimpleDateFormat hourlyDateFormat2 = new SimpleDateFormat("HH:mm");
             for (Hourly hourly : weather.hourlyList){
+                if (counter == 0){
+                    minTemp2 = maxTemp2= Integer.parseInt(hourly.temperature);
+                }
+                maxTemp2 = Math.max(maxTemp2, Integer.parseInt(hourly.temperature));
+                minTemp2 = Math.min(minTemp2, Integer.parseInt(hourly.temperature));
+
                 int hourlyImageId = getResources().getIdentifier("wea_" +
                         hourly.weatherInfo.code, "drawable", getPackageName());
                 Date hourlyDate = null;
@@ -250,13 +260,26 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 }catch (ParseException e){
                     e.printStackTrace();
                 }
-                HourlyItem hourlyItem= new HourlyItem(hourlyDateFormat2.format(hourlyDate),
-                        hourlyImageId, hourly.temperature, hourly.weatherInfo.txt);
-                hourlyData.add(hourlyItem);
+                String hourlyDateLocal = hourlyDateFormat2.format(hourlyDate);
+                xAxisIcon2[counter] = hourlyImageId;
+                xAxisTxt2[counter] = hourlyDateLocal;
+                hourlyData.put(hourlyDateLocal, hourly.temperature + "℃");
+                counter ++;
             }
-            if (hourlyData.size() > 0){
-                hourlyAdapter.notifyDataSetChanged();
+            hourlyWeatherData.add(hourlyData);
+            yAxisTxt2 = new String[maxTemp2 - minTemp2 + 1];
+            j = 0;
+            for (int i = maxTemp2; i >= minTemp2; i--){
+                yAxisTxt2[j] = i + "℃";
+                j ++;
             }
+            hourlyLineChart.setxAxisPointsTxt(xAxisTxt2);
+            hourlyLineChart.setyAxisPointsTxt(yAxisTxt2);
+            hourlyLineChart.setShowYAxis(false);
+            hourlyLineChart.setAxisTextColor("#ffffff");
+            hourlyLineChart.setxAxisIcon(xAxisIcon2);
+            hourlyLineChart.setDataList(hourlyWeatherData);
+
             //index
             IndexItem comfortIndex = new IndexItem("舒适度",
                     weather.suggestion.comfortIndex.shortDes,

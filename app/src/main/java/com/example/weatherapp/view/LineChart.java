@@ -35,15 +35,15 @@ public class LineChart extends View {
     //xy轴刻度间隔
     private int xInterval, yInterval;
     //xy轴文字大小
-    private int axisTextSize = 16;
+    private int axisTextSize = 20;
     //xy轴文字颜色
-    private String axisTextColor = "#cccccc";
+    private String axisTextColor = "#ffffff";
     //x轴图标
     private int[] xAxisIcon = new int[]{};
     //x轴图标与文字间隔
-    private static final int XAXIS_INTERVAL_BETWEEN_ICON_AND_TEXT = 5;
+    private int intervalIconText = 10;
     //x轴图标尺寸
-    private int xAxisIconWidth = 35;
+    private int xAxisIconWidth = 50;
     //显示y轴
     private boolean showYAxis = true;
     //圆点半径
@@ -53,7 +53,7 @@ public class LineChart extends View {
     //paint
     private Paint axisPaint, linePaint;
     //default linepaint color
-    private static final String DEFAULT_LINE_PAINT_COLOR= "#97d9ff";
+    private static final String DEFAULT_LINE_PAINT_COLOR= "#ffffff";
     //linepaint color array
     private String[] linePaintColor = new String[]{DEFAULT_LINE_PAINT_COLOR};
     //view高宽
@@ -101,7 +101,8 @@ public class LineChart extends View {
         Rect rect = new Rect();
 
         Paint axisHelperLinePaint = new Paint();
-        axisHelperLinePaint.setColor(Color.parseColor("#eeeeee"));
+        axisHelperLinePaint.setColor(Color.parseColor("#ffffff"));
+        axisHelperLinePaint.setAlpha(50);
 
         axisPaint = new Paint();
         axisPaint.setColor(Color.parseColor(axisTextColor));
@@ -113,21 +114,29 @@ public class LineChart extends View {
         linePaint.setStrokeWidth(LINE_WIDTH);
         linePaint.setAntiAlias(true);
 
+        if (xAxisIcon.length == 0){
+            xAxisIconWidth = 0;
+            intervalIconText = 0;
+        }
+
         //y 轴
         int yLen = yAxisPointsTxt.length;
         //measure text
         axisPaint.getTextBounds(yAxisPointsTxt[0], 0 , yAxisPointsTxt[0].length(), rect);   //return 39 15
         int yAxisTextWidth = showYAxis ? rect.width() : 0;
         int yAxisTextHeight = rect.height();
-        yInterval = (mHeight - yAxisTextHeight) / yLen;
+        int yAxisTextOffset = xAxisIconWidth + intervalIconText;
+        int intervalBetweenXY = 20;
+        //为了让y轴顶部文字和折线最大值标注可以正常显示，第一个刻度的起始位置需要空出两个y轴文字的高度
+        yInterval = (mHeight - yAxisTextHeight*2 - yAxisTextOffset - intervalBetweenXY) / yLen;
         yCoordinate = new HashMap<>();
         for (int i = 0; i < yLen; i++){
             if (showYAxis) {
-                canvas.drawText(yAxisPointsTxt[i], 0, (int) (i * yInterval + yAxisTextHeight), axisPaint);
+                canvas.drawText(yAxisPointsTxt[i], 0, (int) (i * yInterval + yAxisTextHeight*2), axisPaint);
             }
 //            canvas.drawLine(0, (int)(i * yInterval + rect.height() / 2), mWidth,
 //                    (int)(i * yInterval + rect.height() / 2), axisHelperLinePaint);
-            yCoordinate.put(yAxisPointsTxt[i], (int)(i * yInterval));
+            yCoordinate.put(yAxisPointsTxt[i], (int)(i * yInterval + yAxisTextHeight));
         }
 
         //x轴
@@ -136,25 +145,29 @@ public class LineChart extends View {
         int xAxisTextOffset = showYAxis ? 10 : 0;
         xInterval = (mWidth - yAxisTextWidth) / xLen;
         xCoordinate = new HashMap<>();
-        if (xAxisIcon.length == 0){
-            xAxisIconWidth = 0;
-        }
+
 //        Log.d(TAG, xAxisIconWidth + "");
         for (int i = 0; i < xLen; i++){
-            int xTxtCoordinate = (int)(i * xInterval + yAxisTextWidth + xAxisTextOffset);
-            int yTxtCoordinate = (int)mHeight - xAxisIconWidth;
+            //在间隔内居中对齐
+            int xTxtCoordinate = (int)(i * xInterval + yAxisTextWidth + xAxisTextOffset + xInterval/2 - xAxisTextWidth/2);
+            int yTxtCoordinate = (int)mHeight - xAxisIconWidth - intervalIconText;
             canvas.drawText(xAxisPointsTxt[i], xTxtCoordinate, yTxtCoordinate, axisPaint);
 //            canvas.drawLine((int)(i * xInterval + rect.width() + xAxisTextWidth / 2), 0,
 //                    (int)(i * xInterval + rect.width() + xAxisTextWidth / 2),
 //                    mHeight, axisHelperLinePaint);
-            for (int a = 0; a < xAxisIcon.length; a++){
+            if (xAxisIcon.length > i){
                 //drawbitmap
                 int xBitmapCoordinate = (int)(xTxtCoordinate + xAxisTextWidth / 2 - xAxisIconWidth / 2);
-                int yBitmapCoordinate = (int)(mHeight - xAxisIconWidth + XAXIS_INTERVAL_BETWEEN_ICON_AND_TEXT);
-                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), xAxisIcon[a]);
-                Rect dst = new Rect(xBitmapCoordinate, yBitmapCoordinate, xBitmapCoordinate + xAxisIconWidth, yBitmapCoordinate + xAxisIconWidth);
+                int yBitmapCoordinate = (int)(yTxtCoordinate + intervalIconText);
+                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), xAxisIcon[i]);
+                Rect dst = new Rect(xBitmapCoordinate, yBitmapCoordinate, xBitmapCoordinate +
+                        xAxisIconWidth, yBitmapCoordinate + xAxisIconWidth);
                 canvas.drawBitmap(bitmap, null, dst, null);
+                bitmap.recycle();
             }
+            //draw vertical separator line
+            int nextX = (int)((i+1)*xInterval + yAxisTextWidth + xAxisTextOffset);
+            canvas.drawLine(nextX, 0 ,nextX, mHeight, axisHelperLinePaint);
             xCoordinate.put(xAxisPointsTxt[i], xTxtCoordinate);
         }
 

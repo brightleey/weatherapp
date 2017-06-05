@@ -226,7 +226,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 yAxisTxt[j] = i + "℃";
                 j ++;
             }
-            //dailyLineChart.setAxisTextSize(16);
+//            dailyLineChart.setAxisTextSize(30);
             dailyLineChart.setxAxisPointsTxt(xAxisTxt);
             dailyLineChart.setyAxisPointsTxt(yAxisTxt);
             dailyLineChart.setxAxisIcon(xAxisIcon);
@@ -273,6 +273,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 yAxisTxt2[j] = i + "℃";
                 j ++;
             }
+//            hourlyLineChart.setAxisTextSize(30);
             hourlyLineChart.setxAxisPointsTxt(xAxisTxt2);
             hourlyLineChart.setyAxisPointsTxt(yAxisTxt2);
             hourlyLineChart.setShowYAxis(false);

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="abc">
-        <attr name="border_color" format="color"></attr>
+    <declare-styleable name="LineChart">
+        <attr name="textSize" format="dimension"></attr>
+        <attr name="circleRadius" format="dimension"></attr>
     </declare-styleable>
 </resources>

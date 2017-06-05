@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:lc="http://schemas.android.com/apk/res/com.example.weatherapp"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -7,7 +8,9 @@
 
     <com.example.weatherapp.view.LineChart
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="150dp"
+        lc:textSize="14sp"
+        lc:circleRadius="3dp"
         android:id="@+id/hourly_linechart"/>
 
 </LinearLayout>

@@ -1,6 +1,7 @@
 package com.example.weatherapp.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -10,7 +11,10 @@ import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
+
+import com.example.weatherapp.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,21 +39,23 @@ public class LineChart extends View {
     //xy轴刻度间隔
     private int xInterval, yInterval;
     //xy轴文字大小
-    private int axisTextSize = 20;
+    private int axisTextSize;
     //xy轴文字颜色
     private String axisTextColor = "#ffffff";
     //x轴图标
     private int[] xAxisIcon = new int[]{};
     //x轴图标与文字间隔
-    private int intervalIconText = 10;
+    private int intervalIconText;
     //x轴图标尺寸
-    private int xAxisIconWidth = 50;
+    private int xAxisIconWidth;
     //显示y轴
     private boolean showYAxis = true;
     //圆点半径
-    private static final int CIRCLE_POINT_RADIUS = 4;
-    //线条宽度
-    private static final float LINE_WIDTH = 1.0f;
+    private int circlePointRadius;
+    //圆点与标注的间隔
+    private int intervalCircleAndFlag;
+    //x轴和y轴文字垂直间距
+    int intervalBetweenXY;
     //paint
     private Paint axisPaint, linePaint;
     //default linepaint color
@@ -69,6 +75,26 @@ public class LineChart extends View {
 
     public LineChart(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        /*获取自定义属性*/
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.LineChart, defStyleAttr, 0);
+        int n = a.getIndexCount();
+        for (int i = 0; i < n; i++){
+            int attr = a.getIndex(i);
+            switch (attr){
+                case R.styleable.LineChart_textSize:
+                    axisTextSize = a.getDimensionPixelOffset(attr, 16);
+                    break;
+                case R.styleable.LineChart_circleRadius:
+                    circlePointRadius = a.getDimensionPixelOffset(attr, 4);
+                    break;
+            }
+        }
+        intervalIconText = intervalBetweenXY = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
+                5, context.getResources().getDisplayMetrics());
+        intervalCircleAndFlag = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
+                2, context.getResources().getDisplayMetrics());
+        xAxisIconWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
+                30, context.getResources().getDisplayMetrics());
     }
 
     @Override
@@ -107,11 +133,12 @@ public class LineChart extends View {
         axisPaint = new Paint();
         axisPaint.setColor(Color.parseColor(axisTextColor));
         axisPaint.setTextSize(axisTextSize);
+        axisPaint.setAntiAlias(true);
 
         linePaint = new Paint();
         linePaint.setColor(Color.parseColor(DEFAULT_LINE_PAINT_COLOR));
         linePaint.setTextSize(axisTextSize);
-        linePaint.setStrokeWidth(LINE_WIDTH);
+        linePaint.setStyle(Paint.Style.FILL);
         linePaint.setAntiAlias(true);
 
         if (xAxisIcon.length == 0){
@@ -124,11 +151,12 @@ public class LineChart extends View {
         //measure text
         axisPaint.getTextBounds(yAxisPointsTxt[0], 0 , yAxisPointsTxt[0].length(), rect);   //return 39 15
         int yAxisTextWidth = showYAxis ? rect.width() : 0;
+        int yAxisTextWidth2 = rect.width();
         int yAxisTextHeight = rect.height();
         int yAxisTextOffset = xAxisIconWidth + intervalIconText;
-        int intervalBetweenXY = 20;
+
         //为了让y轴顶部文字和折线最大值标注可以正常显示，第一个刻度的起始位置需要空出两个y轴文字的高度
-        yInterval = (mHeight - yAxisTextHeight*2 - yAxisTextOffset - intervalBetweenXY) / yLen;
+        yInterval = (mHeight - yAxisTextHeight*2 - yAxisTextOffset - intervalBetweenXY - intervalCircleAndFlag) / yLen;
         yCoordinate = new HashMap<>();
         for (int i = 0; i < yLen; i++){
             if (showYAxis) {
@@ -136,12 +164,13 @@ public class LineChart extends View {
             }
 //            canvas.drawLine(0, (int)(i * yInterval + rect.height() / 2), mWidth,
 //                    (int)(i * yInterval + rect.height() / 2), axisHelperLinePaint);
-            yCoordinate.put(yAxisPointsTxt[i], (int)(i * yInterval + yAxisTextHeight));
+            yCoordinate.put(yAxisPointsTxt[i], (int)(i * yInterval + yAxisTextHeight + intervalCircleAndFlag));
         }
 
         //x轴
         int xLen = xAxisPointsTxt.length;
-        int xAxisTextWidth = (int) axisPaint.measureText(xAxisPointsTxt[0]);
+        //排除今天
+        int xAxisTextWidth = (int) axisPaint.measureText(xAxisPointsTxt[1]);
         int xAxisTextOffset = showYAxis ? 10 : 0;
         xInterval = (mWidth - yAxisTextWidth) / xLen;
         xCoordinate = new HashMap<>();
@@ -166,8 +195,10 @@ public class LineChart extends View {
                 bitmap.recycle();
             }
             //draw vertical separator line
-            int nextX = (int)((i+1)*xInterval + yAxisTextWidth + xAxisTextOffset);
-            canvas.drawLine(nextX, 0 ,nextX, mHeight, axisHelperLinePaint);
+            if(i > 0){
+                int nextX = (int)(i*xInterval - yAxisTextWidth - xAxisTextOffset);
+                canvas.drawLine(nextX, 0 ,nextX, mHeight, axisHelperLinePaint);
+            }
             xCoordinate.put(xAxisPointsTxt[i], xTxtCoordinate);
         }
 
@@ -186,11 +217,12 @@ public class LineChart extends View {
                 //draw circle
                 canvas.drawCircle(xCoordinate.get(xAxisPointsTxt[i]) + xAxisTextWidth / 2,
                         yCoordinate.get(hashMap.get(xAxisPointsTxt[i]))
-                                + rect.height() / 2, CIRCLE_POINT_RADIUS, linePaint);
+                                + rect.height() / 2, circlePointRadius, linePaint);
 
                 //draw txt
-                canvas.drawText(hashMap.get(xAxisPointsTxt[i]), xCoordinate.get(xAxisPointsTxt[i]),
-                        yCoordinate.get(hashMap.get(xAxisPointsTxt[i])), linePaint);
+                canvas.drawText(hashMap.get(xAxisPointsTxt[i]), xCoordinate.get(xAxisPointsTxt[i]) +
+                                xAxisTextWidth / 2 - yAxisTextWidth2 /2,
+                        yCoordinate.get(hashMap.get(xAxisPointsTxt[i])) - intervalCircleAndFlag, linePaint);
             }
             counter ++;
         }

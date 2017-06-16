@@ -89,6 +89,7 @@ public class LineChart extends View {
                     break;
             }
         }
+        a.recycle();
         intervalIconText = intervalBetweenXY = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
                 5, context.getResources().getDisplayMetrics());
         intervalCircleAndFlag = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,

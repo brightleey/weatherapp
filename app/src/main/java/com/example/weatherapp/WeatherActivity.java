@@ -36,6 +36,7 @@ import com.example.weatherapp.gson.Weather;
 import com.example.weatherapp.util.DividerItemDecoration;
 import com.example.weatherapp.util.HttpCallbackListener;
 import com.example.weatherapp.util.HttpUtil;
+import com.example.weatherapp.view.BorderGridView;
 import com.example.weatherapp.view.LineChart;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -77,24 +78,13 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private LineChart dailyLineChart, hourlyLineChart;
 
-    //weather_daily
-    private RecyclerView weatherDailyRecyclerView;
-    private List<DailyItem> dailyData = new ArrayList<>();
-    private DailyAdapter dailyAdapter;
-
-    //weather_hourly
-    private RecyclerView weatherHourlyRecyclerView;
-    private List<HourlyItem> hourlyData = new ArrayList<>();
-    private HourlyAdapter hourlyAdapter;
-
     //weather_index
+    private BorderGridView IndexGridView;
     private RecyclerView weatherIndexRecyclerView;
     private List<IndexItem> indexData = new ArrayList<>();
     private IndexAdapter indexAdapter;
 
     //global_config
-    private static final int DEFAULT_DISPLAY_DAYS_COUNT = 5;
-    private static final int DEFAULT_DISPLAY_HOURS_COUNT = 8;
     private static final int DEFAULT_DISPLAY_INDEX_COUNT = 2;
 
     @Override
@@ -126,6 +116,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         hourlyLineChart = (LineChart) findViewById(R.id.hourly_linechart);
 
         //index
+        //IndexGridView = (BorderGridView) findViewById(R.id.grid_view);
         weatherIndexRecyclerView = (RecyclerView) findViewById(R.id.index_recyclerview);
         GridLayoutManager indexLayoutManager = new GridLayoutManager(this,
                 DEFAULT_DISPLAY_INDEX_COUNT);
@@ -209,8 +200,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 }
 
 
-                maxTempHashMap.put(dailyDateLocal, daily.temperature.max + "℃");
-                minTempHashMap.put(dailyDateLocal, daily.temperature.min + "℃");
+                maxTempHashMap.put(dailyDateLocal, daily.temperature.max + "°");
+                minTempHashMap.put(dailyDateLocal, daily.temperature.min + "°");
 
                 xAxisIcon[counter] = weaImageId;
                 xAxisTxt[counter] = dailyDateLocal;
@@ -223,7 +214,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             yAxisTxt = new String[maxTemp - minTemp + 1];
             int j = 0;
             for (int i = maxTemp; i >= minTemp; i--){
-                yAxisTxt[j] = i + "℃";
+                yAxisTxt[j] = i + "°";
                 j ++;
             }
 //            dailyLineChart.setAxisTextSize(30);
@@ -263,14 +254,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 String hourlyDateLocal = hourlyDateFormat2.format(hourlyDate);
                 xAxisIcon2[counter] = hourlyImageId;
                 xAxisTxt2[counter] = hourlyDateLocal;
-                hourlyData.put(hourlyDateLocal, hourly.temperature + "℃");
+                hourlyData.put(hourlyDateLocal, hourly.temperature + "°");
                 counter ++;
             }
             hourlyWeatherData.add(hourlyData);
             yAxisTxt2 = new String[maxTemp2 - minTemp2 + 1];
             j = 0;
             for (int i = maxTemp2; i >= minTemp2; i--){
-                yAxisTxt2[j] = i + "℃";
+                yAxisTxt2[j] = i + "°";
                 j ++;
             }
 //            hourlyLineChart.setAxisTextSize(30);

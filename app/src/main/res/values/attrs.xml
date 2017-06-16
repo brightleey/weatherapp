@@ -4,4 +4,7 @@
         <attr name="textSize" format="dimension"></attr>
         <attr name="circleRadius" format="dimension"></attr>
     </declare-styleable>
+    <declare-styleable name="BorderGridView">
+        <attr name="borderColor" format="string"></attr>
+    </declare-styleable>
 </resources>

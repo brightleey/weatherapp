@@ -34,5 +34,7 @@ public class Now {
         public String fengxiang;
         @SerializedName("sc")
         public String fengli;
+        @SerializedName("spd")
+        public String fengsu;
     }
 }

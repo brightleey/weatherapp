@@ -19,6 +19,7 @@ import com.example.weatherapp.R;
 public class BorderGridView extends GridView {
     private Paint linePaint;
     private String lineColor = "#cccccc";
+    private int lineOpacity = 255;
     public BorderGridView(Context context) {
         this(context, null);
     }
@@ -31,6 +32,7 @@ public class BorderGridView extends GridView {
         super(context, attrs, defStyleAttr);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.BorderGridView, defStyleAttr, 0);
         lineColor = a.getString(R.styleable.BorderGridView_borderColor);
+        lineOpacity = a.getInt(R.styleable.BorderGridView_borderOpacity, 255);
     }
 
 
@@ -44,6 +46,7 @@ public class BorderGridView extends GridView {
         linePaint = new Paint();
         linePaint.setColor(Color.parseColor(lineColor));
         linePaint.setStyle(Paint.Style.STROKE);
+        linePaint.setAlpha(lineOpacity);
 //        linePaint.setAntiAlias(true);
 
         for (int i = 0; i < childCount; i++){

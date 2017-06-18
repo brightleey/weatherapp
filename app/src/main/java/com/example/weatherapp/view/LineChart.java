@@ -93,7 +93,7 @@ public class LineChart extends View {
         intervalIconText = intervalBetweenXY = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
                 5, context.getResources().getDisplayMetrics());
         intervalCircleAndFlag = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
-                2, context.getResources().getDisplayMetrics());
+                5, context.getResources().getDisplayMetrics());
         xAxisIconWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
                 30, context.getResources().getDisplayMetrics());
     }
@@ -170,8 +170,8 @@ public class LineChart extends View {
 
         //x轴
         int xLen = xAxisPointsTxt.length;
-        //排除今天
-        int xAxisTextWidth = (int) axisPaint.measureText(xAxisPointsTxt[1]);
+        //以第一个刻度文字宽度为准
+        int xAxisTextWidth = (int) axisPaint.measureText(xAxisPointsTxt[0]);
         int xAxisTextOffset = showYAxis ? 10 : 0;
         xInterval = (mWidth - yAxisTextWidth) / xLen;
         xCoordinate = new HashMap<>();

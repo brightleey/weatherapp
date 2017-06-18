@@ -1,6 +1,7 @@
 package com.example.weatherapp;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -69,8 +70,9 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     private Context mContext;
 
     private WeatherDB weatherDB;
+    private ProgressDialog progressDialog;
 
-    SharedPreferences.Editor editor;
+    private SharedPreferences.Editor editor;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -178,7 +180,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     }
 
     private void queryFromServer(String url, final int level) {
-
+        showProgressDialog();
         HttpUtil.httpRequest(url, new HttpCallbackListener() {
             @Override
             public void onSuccess(final String responseText) {
@@ -196,6 +198,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            closeProgressDialog();
                             areaName.setText(responseText);
                             if (level == LEVEL_PROVINCE){
                                 queryProvinces();
@@ -214,11 +217,27 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        closeProgressDialog();
                         Log.d(TAG, e.getMessage());
                         Toast.makeText(mContext, "加载失败:"+e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
+    }
+
+    private void showProgressDialog(){
+        if(progressDialog == null){
+            progressDialog = new ProgressDialog(getContext());
+            progressDialog.setMessage("Loading...");
+            progressDialog.setCancelable(false);
+        }
+        progressDialog.show();
+    }
+
+    private void closeProgressDialog(){
+        if (progressDialog != null){
+            progressDialog.dismiss();
+        }
     }
 }

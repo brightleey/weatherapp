@@ -6,5 +6,6 @@
     </declare-styleable>
     <declare-styleable name="BorderGridView">
         <attr name="borderColor" format="string"></attr>
+        <attr name="borderOpacity" format="integer"></attr>
     </declare-styleable>
 </resources>

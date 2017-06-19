@@ -48,7 +48,7 @@
             android:id="@+id/wea_icon"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:src="@drawable/a100"
+            android:src="@drawable/wea_100"
             android:layout_marginRight="10dp"
             android:layout_gravity="center_vertical"
             />

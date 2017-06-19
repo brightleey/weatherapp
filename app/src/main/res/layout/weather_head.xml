@@ -12,34 +12,37 @@
         android:orientation="horizontal"
         android:id="@+id/btnbar"
         android:gravity="right">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:id="@+id/btn_city"
-            android:textColor="#ffffff"
-            android:text="@string/btn_city"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:id="@+id/btn_add"
-            android:textColor="#ffffff"
-            android:layout_marginLeft="15dp"
-            android:text="@string/btn_add"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:id="@+id/btn_refresh"
+            android:src="@drawable/icon_refresh"
+            />
+
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:id="@+id/btn_share"
+            android:src="@drawable/icon_share"
+            android:layout_marginLeft="15dp"/>
+
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:id="@+id/btn_more"
-            android:textColor="#ffffff"
-            android:layout_marginLeft="15dp"
-            android:text="┇"/>
+            android:src="@drawable/icon_switch"
+            android:layout_marginLeft="15dp"/>
+
     </LinearLayout>
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_menu"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/icon_menu"
         android:layout_centerVertical="true"
         android:id="@+id/wea_menu_icon"
         android:layout_below="@id/btnbar"

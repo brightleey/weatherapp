@@ -1,5 +1,7 @@
 package com.example.weatherapp.util;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -14,6 +16,8 @@ import java.net.URL;
  */
 
 public class HttpUtil {
+    public static ProgressDialog progressDialog;
+
     public static void httpRequest(final String link, final HttpCallbackListener callbackListener){
         new Thread(new Runnable() {
             @Override
@@ -46,5 +50,20 @@ public class HttpUtil {
                 }
             }
         }).start();
+    }
+
+    public static void showProgressDialog(Context context){
+        if(progressDialog == null){
+            progressDialog = new ProgressDialog(context);
+            progressDialog.setMessage("Loading...");
+            progressDialog.setCancelable(false);
+        }
+        progressDialog.show();
+    }
+
+    public static void closeProgressDialog(){
+        if (progressDialog != null){
+            progressDialog.dismiss();
+        }
     }
 }

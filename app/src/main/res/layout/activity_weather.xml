@@ -43,30 +43,16 @@
                     android:layout_height="wrap_content"
                     android:text="@string/wea_daily"
                     android:textColor="#ffffff"
-                    android:layout_margin="10dp"/>
+                    android:layout_marginLeft="10dp"
+                    />
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="#fff"
                     android:alpha="0.2"
-                    android:layout_marginLeft="10dp"></View>
+                    android:layout_margin="10dp"></View>
 
                 <include layout="@layout/weather_daily"></include>
-
-
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/wea_hourly"
-                        android:textColor="#ffffff"
-                        android:layout_margin="10dp"/>
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#fff"
-                    android:alpha="0.2"
-                    android:layout_marginLeft="10dp"></View>
 
                 <include layout="@layout/weather_hourly"></include>
 

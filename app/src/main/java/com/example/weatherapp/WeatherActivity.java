@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,12 +68,13 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private final static String WEATHER_API_KEY = "bc0418b57b2d4918819d3974ac1285d9";
     private FrameLayout rootLayout;
     private DrawerLayout drawerLayout;
+    private LinearLayout hourlyLayout;
     private TextView weaAddr, weaTemp, weaWeather, weaDate, weaAqi;
     private ImageView menuIcon, weaIcon, weaBg;
     private String weatherId;
     private LineChart dailyLineChart, hourlyLineChart;
 
-    private TextView btnCity, btnAdd, btnMore;
+    private ImageView btnRefresh, btnShare, btnMore;
 
     //weather_index
     private BorderGridView indexGridView;
@@ -108,6 +110,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private void initViews(){
         rootLayout = (FrameLayout) findViewById(R.id.root_layout);
+        hourlyLayout = (LinearLayout) findViewById(R.id.wea_hourly_layout);
         menuIcon = (ImageView)findViewById(R.id.wea_menu_icon);
         weaIcon = (ImageView) findViewById(R.id.wea_icon);
         drawerLayout = (DrawerLayout) findViewById(R.id.wea_drawerlayout);
@@ -118,15 +121,15 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         weaAqi = (TextView) findViewById(R.id.wea_aqi);
         weaBg = (ImageView) findViewById(R.id.wea_bg);
 
-        btnAdd = (TextView) findViewById(R.id.btn_add);
-        btnCity = (TextView) findViewById(R.id.btn_city);
-        btnMore = (TextView) findViewById(R.id.btn_more);
+        btnRefresh = (ImageView) findViewById(R.id.btn_refresh);
+        btnShare = (ImageView) findViewById(R.id.btn_share);
+        btnMore = (ImageView) findViewById(R.id.btn_more);
 
         dailyLineChart = (LineChart) findViewById(R.id.daily_linechart);
         hourlyLineChart = (LineChart) findViewById(R.id.hourly_linechart);
         indexGridView = (BorderGridView) findViewById(R.id.grid_view);
 
-        indexAdapter2 = new IndexAdapter2(this, R.layout.index_item, indexData);
+        indexAdapter2 = new IndexAdapter2(this, R.layout.index_item2, indexData);
         indexGridView.setAdapter(indexAdapter2);
         indexGridView.setSelector(new ColorDrawable(Color.TRANSPARENT));
         //整屏滚动时需要添加paddingTop
@@ -137,6 +140,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private void initEvents(){
         menuIcon.setOnClickListener(this);
         btnMore.setOnClickListener(this);
+        btnRefresh.setOnClickListener(this);
     }
 
     private void initDatas(){
@@ -235,46 +239,52 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
             //hourly
             counter = 0;
-            String[] yAxisTxt2, xAxisTxt2 = new String[weather.hourlyList.size()];
-            int[] xAxisIcon2 = new int[weather.hourlyList.size()];
-            List<HashMap<String, String>> hourlyWeatherData = new ArrayList<>();
-            HashMap<String, String> hourlyData = new HashMap<>();
-            int maxTemp2 = 0, minTemp2 = 0;
+            int hourlyCount = weather.hourlyList.size();
+            if (hourlyCount > 0) {
+                String[] yAxisTxt2, xAxisTxt2 = new String[hourlyCount];
+                int[] xAxisIcon2 = new int[hourlyCount];
+                List<HashMap<String, String>> hourlyWeatherData = new ArrayList<>();
+                HashMap<String, String> hourlyData = new HashMap<>();
+                int maxTemp2 = 0, minTemp2 = 0;
 
-            SimpleDateFormat hourlyDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            SimpleDateFormat hourlyDateFormat2 = new SimpleDateFormat("HH:mm");
-            for (Hourly hourly : weather.hourlyList){
-                if (counter == 0){
-                    minTemp2 = maxTemp2= Integer.parseInt(hourly.temperature);
-                }
-                maxTemp2 = Math.max(maxTemp2, Integer.parseInt(hourly.temperature));
-                minTemp2 = Math.min(minTemp2, Integer.parseInt(hourly.temperature));
+                SimpleDateFormat hourlyDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                SimpleDateFormat hourlyDateFormat2 = new SimpleDateFormat("HH:mm");
+                for (Hourly hourly : weather.hourlyList) {
+                    if (counter == 0) {
+                        minTemp2 = maxTemp2 = Integer.parseInt(hourly.temperature);
+                    }
+                    maxTemp2 = Math.max(maxTemp2, Integer.parseInt(hourly.temperature));
+                    minTemp2 = Math.min(minTemp2, Integer.parseInt(hourly.temperature));
 
-                int hourlyImageId = getResources().getIdentifier("wea_" +
-                        hourly.weatherInfo.code, "drawable", getPackageName());
-                Date hourlyDate = null;
-                try {
-                    hourlyDate = hourlyDateFormat.parse(hourly.time);
-                }catch (ParseException e){
-                    e.printStackTrace();
+                    int hourlyImageId = getResources().getIdentifier("wea_" +
+                            hourly.weatherInfo.code, "drawable", getPackageName());
+                    Date hourlyDate = null;
+                    try {
+                        hourlyDate = hourlyDateFormat.parse(hourly.time);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    String hourlyDateLocal = hourlyDateFormat2.format(hourlyDate);
+                    xAxisIcon2[counter] = hourlyImageId;
+                    xAxisTxt2[counter] = hourlyDateLocal;
+                    hourlyData.put(hourlyDateLocal, hourly.temperature + "°");
+                    counter++;
                 }
-                String hourlyDateLocal = hourlyDateFormat2.format(hourlyDate);
-                xAxisIcon2[counter] = hourlyImageId;
-                xAxisTxt2[counter] = hourlyDateLocal;
-                hourlyData.put(hourlyDateLocal, hourly.temperature + "°");
-                counter ++;
+                hourlyWeatherData.add(hourlyData);
+                if (hourlyCount == 1) maxTemp2 = minTemp2 = Integer.parseInt(weather.hourlyList.get(0).temperature);
+                yAxisTxt2 = new String[maxTemp2 - minTemp2 + 1];
+                j = 0;
+                for (int i = maxTemp2; i >= minTemp2; i--) {
+                    yAxisTxt2[j] = i + "°";
+                    j++;
+                }
+                hourlyLineChart.setxAxisPointsTxt(xAxisTxt2);
+                hourlyLineChart.setyAxisPointsTxt(yAxisTxt2);
+                hourlyLineChart.setxAxisIcon(xAxisIcon2);
+                hourlyLineChart.setDataList(hourlyWeatherData);
+            }else {
+                hourlyLayout.setVisibility(View.GONE);
             }
-            hourlyWeatherData.add(hourlyData);
-            yAxisTxt2 = new String[maxTemp2 - minTemp2 + 1];
-            j = 0;
-            for (int i = maxTemp2; i >= minTemp2; i--){
-                yAxisTxt2[j] = i + "°";
-                j ++;
-            }
-            hourlyLineChart.setxAxisPointsTxt(xAxisTxt2);
-            hourlyLineChart.setyAxisPointsTxt(yAxisTxt2);
-            hourlyLineChart.setxAxisIcon(xAxisIcon2);
-            hourlyLineChart.setDataList(hourlyWeatherData);
 
             //index
             IndexItem comfortIndex = new IndexItem("舒适度指数",
@@ -294,7 +304,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     weather.suggestion.sportIndex.detailTxt, R.drawable.indice_yd);
             IndexItem travelIndex = new IndexItem("旅游指数",
                     weather.suggestion.travelIndex.shortDes,
-                    weather.suggestion.travelIndex.detailTxt, R.drawable.indice_ls);
+                    weather.suggestion.travelIndex.detailTxt, R.drawable.indice_ly);
             IndexItem uvIndex = new IndexItem("紫外线指数",
                     weather.suggestion.uvIndex.shortDes,
                     weather.suggestion.uvIndex.detailTxt, R.drawable.indice_zwx);
@@ -318,6 +328,11 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         switch (v.getId()){
             case R.id.wea_menu_icon:
                 drawerLayout.openDrawer(GravityCompat.START);
+                break;
+            case R.id.btn_refresh:
+                if (weatherId != null){
+                    requestWeather(weatherId);
+                }
                 break;
             case R.id.btn_more:
                 PopupMenu popupMenu = new PopupMenu(this, v);
@@ -389,6 +404,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private void requestWeather(final String weatherId){
         if (!TextUtils.isEmpty(weatherId)) {
+            HttpUtil.showProgressDialog(this);
             HttpUtil.httpRequest("https://free-api.heweather.com/v5/weather?city="
                     + weatherId + "&key=" + WEATHER_API_KEY, new HttpCallbackListener() {
                 @Override
@@ -403,12 +419,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                         public void run() {
                             Weather weather = handleWeatherResponse(responseText);
                             showWeatherInfo(weather);
+                            HttpUtil.closeProgressDialog();
                         }
                     });
                 }
 
                 @Override
                 public void onFail(Exception e) {
+                    HttpUtil.closeProgressDialog();
                     Toast.makeText(WeatherActivity.this, "获取天气失败", Toast.LENGTH_LONG).show();
                 }
             });

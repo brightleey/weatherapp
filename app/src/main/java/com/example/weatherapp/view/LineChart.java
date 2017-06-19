@@ -87,6 +87,12 @@ public class LineChart extends View {
                 case R.styleable.LineChart_circleRadius:
                     circlePointRadius = a.getDimensionPixelOffset(attr, 4);
                     break;
+                case R.styleable.LineChart_showYAxis:
+                    showYAxis = a.getBoolean(attr, true);
+                    break;
+                case R.styleable.LineChart_axisTextColor:
+                    axisTextColor = a.getString(attr);
+                    break;
             }
         }
         a.recycle();

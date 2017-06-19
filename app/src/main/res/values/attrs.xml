@@ -3,6 +3,8 @@
     <declare-styleable name="LineChart">
         <attr name="textSize" format="dimension"></attr>
         <attr name="circleRadius" format="dimension"></attr>
+        <attr name="showYAxis" format="boolean"></attr>
+        <attr name="axisTextColor" format="string"></attr>
     </declare-styleable>
     <declare-styleable name="BorderGridView">
         <attr name="borderColor" format="string"></attr>

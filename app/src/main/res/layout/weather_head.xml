@@ -33,7 +33,7 @@
             android:id="@+id/btn_more"
             android:textColor="#ffffff"
             android:layout_marginLeft="15dp"
-            android:text="@string/btn_more"/>
+            android:text="┇"/>
     </LinearLayout>
 
     <ImageView

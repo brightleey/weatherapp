@@ -12,9 +12,12 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -69,6 +72,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private String weatherId;
     private LineChart dailyLineChart, hourlyLineChart;
 
+    private TextView btnCity, btnAdd, btnMore;
+
     //weather_index
     private BorderGridView indexGridView;
     private List<IndexItem> indexData = new ArrayList<>();
@@ -80,15 +85,19 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //透明化任务栏
-        if (Build.VERSION.SDK_INT >= 21) {
+        //5.0API21透明化任务栏
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             View decorView = getWindow().getDecorView();
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
             //隐藏状态栏
 //            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+            //4.4API19半透明
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
+        Log.d(TAG, "设备型号：" + Build.MODEL + "，设备SDK版本： " + Build.VERSION.SDK_INT + "，设备系统版本：" + Build.VERSION.RELEASE);
         setContentView(R.layout.activity_weather);
 
         initViews();
@@ -109,6 +118,10 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         weaAqi = (TextView) findViewById(R.id.wea_aqi);
         weaBg = (ImageView) findViewById(R.id.wea_bg);
 
+        btnAdd = (TextView) findViewById(R.id.btn_add);
+        btnCity = (TextView) findViewById(R.id.btn_city);
+        btnMore = (TextView) findViewById(R.id.btn_more);
+
         dailyLineChart = (LineChart) findViewById(R.id.daily_linechart);
         hourlyLineChart = (LineChart) findViewById(R.id.hourly_linechart);
         indexGridView = (BorderGridView) findViewById(R.id.grid_view);
@@ -123,6 +136,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private void initEvents(){
         menuIcon.setOnClickListener(this);
+        btnMore.setOnClickListener(this);
     }
 
     private void initDatas(){
@@ -216,8 +230,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             dailyLineChart.setxAxisPointsTxt(xAxisTxt);
             dailyLineChart.setyAxisPointsTxt(yAxisTxt);
             dailyLineChart.setxAxisIcon(xAxisIcon);
-            dailyLineChart.setShowYAxis(false);
-            dailyLineChart.setAxisTextColor("#ffffff");
             dailyLineChart.setLinePaintColor(new String[]{"#ffffff", "#c7f9ff"});
             dailyLineChart.setDataList(dailyWeatherData);
 
@@ -261,8 +273,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             }
             hourlyLineChart.setxAxisPointsTxt(xAxisTxt2);
             hourlyLineChart.setyAxisPointsTxt(yAxisTxt2);
-            hourlyLineChart.setShowYAxis(false);
-            hourlyLineChart.setAxisTextColor("#ffffff");
             hourlyLineChart.setxAxisIcon(xAxisIcon2);
             hourlyLineChart.setDataList(hourlyWeatherData);
 
@@ -308,6 +318,18 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         switch (v.getId()){
             case R.id.wea_menu_icon:
                 drawerLayout.openDrawer(GravityCompat.START);
+                break;
+            case R.id.btn_more:
+                PopupMenu popupMenu = new PopupMenu(this, v);
+                getMenuInflater().inflate(R.menu.menu_more, popupMenu.getMenu());
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        Toast.makeText(WeatherActivity.this, item.getTitle(), Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                });
+                popupMenu.show();
                 break;
         }
     }

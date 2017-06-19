@@ -11,6 +11,8 @@
         android:layout_height="120dp"
         lc:textSize="14sp"
         lc:circleRadius="3dp"
+        lc:showYAxis="false"
+        lc:axisTextColor="#ffffff"
         android:id="@+id/hourly_linechart"/>
 
 </LinearLayout>

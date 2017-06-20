@@ -1,60 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="?attr/actionBarSize"
     android:layout_marginRight="10dp"
     android:layout_marginLeft="10dp"
     >
 
+
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:orientation="horizontal"
+        android:layout_weight="1"
+        android:gravity="left">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/icon_menu"
+            android:layout_centerVertical="true"
+            android:id="@+id/wea_menu_icon"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="10dp"
+            />
+
+        <TextView
+            android:id="@+id/wea_addr"
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#fff"
+            android:text="countyName"
+            android:layout_gravity="center_vertical"
+            android:textSize="20sp"
+            />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_weight="1"
         android:id="@+id/btnbar"
         android:gravity="right">
 
 
         <ImageView
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
             android:id="@+id/btn_refresh"
             android:src="@drawable/icon_refresh"
+            android:layout_gravity="center_vertical"
             />
 
 
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
             android:id="@+id/btn_share"
             android:src="@drawable/icon_share"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="15dp"/>
 
 
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
             android:id="@+id/btn_more"
             android:src="@drawable/icon_switch"
-            android:layout_marginLeft="15dp"/>
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"/>
 
     </LinearLayout>
 
-    <ImageView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/icon_menu"
-        android:layout_centerVertical="true"
-        android:id="@+id/wea_menu_icon"
-        android:layout_below="@id/btnbar"
-        />
 
-    <TextView
-        android:id="@+id/wea_addr"
-        android:layout_centerInParent="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#fff"
-        android:text="countyName"
-        android:layout_below="@id/btnbar"
-        android:textSize="24sp"/>
-</RelativeLayout>
+</LinearLayout>

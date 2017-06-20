@@ -38,7 +38,7 @@ public class WeatherDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_PROVINCE);
         db.execSQL(CREATE_CITY);
         db.execSQL(CREATE_COUNTY);
-        Toast.makeText(mContext, "create database successfully!", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(mContext, "create database successfully!", Toast.LENGTH_SHORT).show();
     }
 
     @Override

@@ -9,10 +9,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
@@ -80,9 +83,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private BorderGridView indexGridView;
     private List<IndexItem> indexData = new ArrayList<>();
     private IndexAdapter2 indexAdapter2;
-
-    //global_config
-    private static final int DEFAULT_DISPLAY_INDEX_COUNT = 2;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -164,7 +164,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private void showWeatherInfo(Weather weather) {
         if (weather != null){
-
             int weaIconId = getResources().getIdentifier("wea_"
                     + weather.now.weatherInfo.weatherCode, "drawable", getPackageName());
             weaAddr.setText(weather.basic.cityName);
@@ -212,7 +211,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 }else {
                     dailyDateLocal = dailyDateLocal.replace("星期", "周");
                 }
-
+                //℃
                 maxTempHashMap.put(dailyDateLocal, daily.temperature.max + "°");
                 minTempHashMap.put(dailyDateLocal, daily.temperature.min + "°");
 
@@ -230,7 +229,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 yAxisTxt[j] = i + "°";
                 j ++;
             }
-//            dailyLineChart.setAxisTextSize(30);
             dailyLineChart.setxAxisPointsTxt(xAxisTxt);
             dailyLineChart.setyAxisPointsTxt(yAxisTxt);
             dailyLineChart.setxAxisIcon(xAxisIcon);
@@ -283,7 +281,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 hourlyLineChart.setxAxisIcon(xAxisIcon2);
                 hourlyLineChart.setDataList(hourlyWeatherData);
             }else {
-                hourlyLayout.setVisibility(View.GONE);
+                if(hourlyLayout.getVisibility() == View.VISIBLE)hourlyLayout.setVisibility(View.GONE);
             }
 
             //index
@@ -311,6 +309,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             IndexItem flIndex = new IndexItem("风力指数",
                     weather.now.windInfo.fengsu + " m/s",
                     weather.now.windInfo.fengli, R.drawable.indice_fl);
+            indexData.clear();
             indexData.add(comfortIndex);
             indexData.add(carWashIndex);
             indexData.add(dressIndex);
@@ -332,6 +331,10 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.btn_refresh:
                 if (weatherId != null){
                     requestWeather(weatherId);
+                    //invalidate没起作用
+//                    dailyLineChart.invalidate();
+//                    hourlyLineChart.invalidate();
+                    Snackbar.make(v, "天气已更新", Snackbar.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.btn_more:
@@ -426,8 +429,13 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
                 @Override
                 public void onFail(Exception e) {
-                    HttpUtil.closeProgressDialog();
-                    Toast.makeText(WeatherActivity.this, "获取天气失败", Toast.LENGTH_LONG).show();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            HttpUtil.closeProgressDialog();
+                            Toast.makeText(WeatherActivity.this, "获取天气失败", Toast.LENGTH_LONG).show();
+                        }
+                    });
                 }
             });
         }

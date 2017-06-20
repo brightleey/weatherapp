@@ -64,6 +64,7 @@ public class HttpUtil {
     public static void closeProgressDialog(){
         if (progressDialog != null){
             progressDialog.dismiss();
+            progressDialog = null;
         }
     }
 }

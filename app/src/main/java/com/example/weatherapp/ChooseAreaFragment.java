@@ -180,7 +180,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
     }
 
     private void queryFromServer(String url, final int level) {
-        showProgressDialog();
+        HttpUtil.showProgressDialog(getContext());
         HttpUtil.httpRequest(url, new HttpCallbackListener() {
             @Override
             public void onSuccess(final String responseText) {
@@ -198,7 +198,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            closeProgressDialog();
+                            HttpUtil.closeProgressDialog();
                             areaName.setText(responseText);
                             if (level == LEVEL_PROVINCE){
                                 queryProvinces();
@@ -217,7 +217,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        closeProgressDialog();
+                        HttpUtil.closeProgressDialog();
                         Log.d(TAG, e.getMessage());
                         Toast.makeText(mContext, "加载失败:"+e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -226,18 +226,4 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         });
     }
 
-    private void showProgressDialog(){
-        if(progressDialog == null){
-            progressDialog = new ProgressDialog(getContext());
-            progressDialog.setMessage("Loading...");
-            progressDialog.setCancelable(false);
-        }
-        progressDialog.show();
-    }
-
-    private void closeProgressDialog(){
-        if (progressDialog != null){
-            progressDialog.dismiss();
-        }
-    }
 }

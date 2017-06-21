@@ -1,6 +1,7 @@
 package com.example.weatherapp;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -13,6 +14,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
@@ -67,12 +69,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 public class WeatherActivity extends AppCompatActivity implements View.OnClickListener {
     private final static String TAG = "WeatherActivity";
+    private long weaUpdateTime = 0;
     //private final static String WEATHER_API_KEY = "c0225d0fd8cd4b2da8e5dae6c9db6c0f";
     private final static String WEATHER_API_KEY = "bc0418b57b2d4918819d3974ac1285d9";
     private FrameLayout rootLayout;
     private DrawerLayout drawerLayout;
     private LinearLayout hourlyLayout;
-    private TextView weaAddr, weaTemp, weaWeather, weaDate, weaAqi;
+    private TextView weaAddr, weaTemp, weaWeather, weaDate, weaAqi, weaUpdTime;
     private ImageView menuIcon, weaIcon, weaBg;
     private String weatherId;
     private LineChart dailyLineChart, hourlyLineChart;
@@ -99,7 +102,9 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             //4.4API19半透明
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-        Log.d(TAG, "设备型号：" + Build.MODEL + "，设备SDK版本： " + Build.VERSION.SDK_INT + "，设备系统版本：" + Build.VERSION.RELEASE);
+        Log.d(TAG, "设备型号：" + Build.MODEL + "，设备SDK版本： "
+                + Build.VERSION.SDK_INT + "，设备系统版本："
+                + Build.VERSION.RELEASE);
         setContentView(R.layout.activity_weather);
 
         initViews();
@@ -120,6 +125,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         weaDate = (TextView) findViewById(R.id.wea_date);
         weaAqi = (TextView) findViewById(R.id.wea_aqi);
         weaBg = (ImageView) findViewById(R.id.wea_bg);
+        weaUpdTime = (TextView) findViewById(R.id.wea_upd_time);
 
         btnRefresh = (ImageView) findViewById(R.id.btn_refresh);
         btnShare = (ImageView) findViewById(R.id.btn_share);
@@ -148,6 +154,10 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         weatherId = intent.getStringExtra("weather_id");
         SharedPreferences spf = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = spf.getString(weatherId, "");
+        String updateTime = spf.getString("upd_time", "");
+        if (!TextUtils.isEmpty(updateTime)){
+            weaUpdateTime = Long.valueOf(updateTime);
+        }
         if (!TextUtils.isEmpty(weatherString)){
             Weather weather = handleWeatherResponse(weatherString);
             showWeatherInfo(weather);
@@ -162,163 +172,204 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private void showWeatherInfo(Weather weather) {
-        if (weather != null){
-            int weaIconId = getResources().getIdentifier("wea_"
-                    + weather.now.weatherInfo.weatherCode, "drawable", getPackageName());
-            weaAddr.setText(weather.basic.cityName);
-            weaIcon.setImageResource(weaIconId);
-            weaTemp.setText(weather.now.wendu);
-            weaDate.setText(new SimpleDateFormat("M月dd日 E",
-                    Locale.SIMPLIFIED_CHINESE).format(new Date()));
-            weaWeather.setText(weather.now.weatherInfo.weatherText + " "
-                    + weather.now.windInfo.fengxiang);
-            weaAqi.setText("PM2.5 " + weather.aqi.airAquality.pm25 + " (" + weather.aqi.airAquality.aqitxt + ")");
+    private void loadTemprature(Weather weather){
+        int weaIconId = getResources().getIdentifier("wea_"
+                + weather.now.weatherInfo.weatherCode, "drawable", getPackageName());
+        weaAddr.setText(weather.basic.cityName);
+        weaIcon.setImageResource(weaIconId);
+        weaTemp.setText(weather.now.wendu);
+        weaDate.setText(new SimpleDateFormat("M月dd日 E",
+                Locale.SIMPLIFIED_CHINESE).format(new Date()));
+        weaWeather.setText(weather.now.weatherInfo.weatherText + " "
+                + weather.now.windInfo.fengxiang);
+        weaAqi.setText("PM2.5 " + weather.aqi.airAquality.pm25 + " (" + weather.aqi.airAquality.aqitxt + ")");
+        if(weaUpdateTime > 0){
+            SimpleDateFormat sdf = new SimpleDateFormat("M/d HH:mm");
+            weaUpdTime.setText("更新时间：" + sdf.format(new Date(weaUpdateTime)));
+        }
+    }
 
-            //daily
-            int maxTemp = 0, minTemp = 0;
-            String[] yAxisTxt, xAxisTxt = new String[weather.dailyList.size()];
-            int[] xAxisIcon = new int[weather.dailyList.size()];
-            List<HashMap<String, String>> dailyWeatherData = new ArrayList<>();
-            HashMap<String, String> maxTempHashMap = new HashMap<>();
-            HashMap<String, String> minTempHashMap = new HashMap<>();
+    private void loadDaily(Weather weather){
+        int maxTemp = 0, minTemp = 0, dailySize = weather.dailyList.size();
+        String[] yAxisTxt, xAxisTxt = new String[dailySize];
+        int[] xAxisIcon = new int[dailySize];
+        List<HashMap<String, String>> dailyWeatherData = new ArrayList<>();
+        HashMap<String, String> maxTempHashMap = new HashMap<>();
+        HashMap<String, String> minTempHashMap = new HashMap<>();
 
 
-            SimpleDateFormat dailyDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat dailyDateFormat2 = new SimpleDateFormat("E", Locale.CHINA);
-            String today = dailyDateFormat2.format(new Date());
-            int counter =0;
-            for(Daily daily : weather.dailyList){
+        SimpleDateFormat dailyDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat dailyDateFormat2 = new SimpleDateFormat("E", Locale.CHINA);
+        String today = dailyDateFormat2.format(new Date());
+        int counter = 0;
+        for (Daily daily : weather.dailyList) {
 
-                if (counter == 0){
-                    maxTemp = Integer.parseInt(daily.temperature.max);
-                    minTemp = Integer.parseInt(daily.temperature.min);
+            if (counter == 0) {
+                maxTemp = Integer.parseInt(daily.temperature.max);
+                minTemp = Integer.parseInt(daily.temperature.min);
+            }
+            maxTemp = Math.max(Integer.parseInt(daily.temperature.max), maxTemp);
+            minTemp = Math.min(Integer.parseInt(daily.temperature.min), minTemp);
+
+            int weaImageId = getResources().getIdentifier("wea_"
+                    + daily.weatherInfo.codeDay, "drawable", getPackageName());
+            Date dailyDate = null;
+            try {
+                dailyDate = dailyDateFormat.parse(daily.date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            String dailyDateLocal = dailyDateFormat2.format(dailyDate);
+            if (dailyDateLocal.equals(today)) {
+                dailyDateLocal = "今天";
+            } else {
+                dailyDateLocal = dailyDateLocal.replace("星期", "周");
+            }
+            //℃
+            maxTempHashMap.put(dailyDateLocal, daily.temperature.max + "°");
+            minTempHashMap.put(dailyDateLocal, daily.temperature.min + "°");
+
+            xAxisIcon[counter] = weaImageId;
+            xAxisTxt[counter] = dailyDateLocal;
+
+            counter++;
+            //if (counter >= DEFAULT_DISPLAY_DAYS_COUNT)break;;
+        }
+        dailyWeatherData.add(maxTempHashMap);
+        dailyWeatherData.add(minTempHashMap);
+        yAxisTxt = new String[maxTemp - minTemp + 1];
+        int j = 0;
+        for (int i = maxTemp; i >= minTemp; i--) {
+            yAxisTxt[j] = i + "°";
+            j++;
+        }
+        dailyLineChart.setxAxisPointsTxt(xAxisTxt);
+        dailyLineChart.setyAxisPointsTxt(yAxisTxt);
+        dailyLineChart.setxAxisIcon(xAxisIcon);
+        dailyLineChart.setLinePaintColor(new String[]{"#ffffff", "#c7f9ff"});
+        dailyLineChart.setDataList(dailyWeatherData);
+        dailyLineChart.setVisibility(View.VISIBLE);
+    }
+
+    private void loadHourly(Weather weather){
+        int counter = 0;
+        int hourlySize = weather.hourlyList.size();
+        if (hourlySize > 0) {
+            String[] yAxisTxt2, xAxisTxt2 = new String[hourlySize];
+            int[] xAxisIcon2 = new int[hourlySize];
+            List<HashMap<String, String>> hourlyWeatherData = new ArrayList<>();
+            HashMap<String, String> hourlyData = new HashMap<>();
+            int maxTemp2 = 0, minTemp2 = 0;
+
+            SimpleDateFormat hourlyDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            SimpleDateFormat hourlyDateFormat2 = new SimpleDateFormat("HH:mm");
+            for (Hourly hourly : weather.hourlyList) {
+                if (counter == 0) {
+                    minTemp2 = maxTemp2 = Integer.parseInt(hourly.temperature);
                 }
-                maxTemp = Math.max(Integer.parseInt(daily.temperature.max), maxTemp);
-                minTemp = Math.min(Integer.parseInt(daily.temperature.min), minTemp);
+                maxTemp2 = Math.max(maxTemp2, Integer.parseInt(hourly.temperature));
+                minTemp2 = Math.min(minTemp2, Integer.parseInt(hourly.temperature));
 
-                int weaImageId = getResources().getIdentifier("wea_"
-                        + daily.weatherInfo.codeDay, "drawable", getPackageName());
-                Date dailyDate = null;
+                int hourlyImageId = getResources().getIdentifier("wea_" +
+                        hourly.weatherInfo.code, "drawable", getPackageName());
+                Date hourlyDate = null;
                 try {
-                    dailyDate = dailyDateFormat.parse(daily.date);
+                    hourlyDate = hourlyDateFormat.parse(hourly.time);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                String dailyDateLocal = dailyDateFormat2.format(dailyDate);
-                if (dailyDateLocal.equals(today)){
-                    dailyDateLocal = "今天";
-                }else {
-                    dailyDateLocal = dailyDateLocal.replace("星期", "周");
-                }
-                //℃
-                maxTempHashMap.put(dailyDateLocal, daily.temperature.max + "°");
-                minTempHashMap.put(dailyDateLocal, daily.temperature.min + "°");
-
-                xAxisIcon[counter] = weaImageId;
-                xAxisTxt[counter] = dailyDateLocal;
-
-                counter ++;
-                //if (counter >= DEFAULT_DISPLAY_DAYS_COUNT)break;;
+                String hourlyDateLocal = hourlyDateFormat2.format(hourlyDate);
+                xAxisIcon2[counter] = hourlyImageId;
+                xAxisTxt2[counter] = hourlyDateLocal;
+                hourlyData.put(hourlyDateLocal, hourly.temperature + "°");
+                counter++;
             }
-            dailyWeatherData.add(maxTempHashMap);
-            dailyWeatherData.add(minTempHashMap);
-            yAxisTxt = new String[maxTemp - minTemp + 1];
+            hourlyWeatherData.add(hourlyData);
+            if (hourlySize == 1){
+                maxTemp2 = minTemp2 = Integer.parseInt(weather.hourlyList.get(0).temperature);
+            }
+            yAxisTxt2 = new String[maxTemp2 - minTemp2 + 1];
             int j = 0;
-            for (int i = maxTemp; i >= minTemp; i--){
-                yAxisTxt[j] = i + "°";
-                j ++;
+            for (int i = maxTemp2; i >= minTemp2; i--) {
+                yAxisTxt2[j] = i + "°";
+                j++;
             }
-            dailyLineChart.setxAxisPointsTxt(xAxisTxt);
-            dailyLineChart.setyAxisPointsTxt(yAxisTxt);
-            dailyLineChart.setxAxisIcon(xAxisIcon);
-            dailyLineChart.setLinePaintColor(new String[]{"#ffffff", "#c7f9ff"});
-            dailyLineChart.setDataList(dailyWeatherData);
-
-            //hourly
-            counter = 0;
-            int hourlyCount = weather.hourlyList.size();
-            if (hourlyCount > 0) {
-                String[] yAxisTxt2, xAxisTxt2 = new String[hourlyCount];
-                int[] xAxisIcon2 = new int[hourlyCount];
-                List<HashMap<String, String>> hourlyWeatherData = new ArrayList<>();
-                HashMap<String, String> hourlyData = new HashMap<>();
-                int maxTemp2 = 0, minTemp2 = 0;
-
-                SimpleDateFormat hourlyDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                SimpleDateFormat hourlyDateFormat2 = new SimpleDateFormat("HH:mm");
-                for (Hourly hourly : weather.hourlyList) {
-                    if (counter == 0) {
-                        minTemp2 = maxTemp2 = Integer.parseInt(hourly.temperature);
-                    }
-                    maxTemp2 = Math.max(maxTemp2, Integer.parseInt(hourly.temperature));
-                    minTemp2 = Math.min(minTemp2, Integer.parseInt(hourly.temperature));
-
-                    int hourlyImageId = getResources().getIdentifier("wea_" +
-                            hourly.weatherInfo.code, "drawable", getPackageName());
-                    Date hourlyDate = null;
-                    try {
-                        hourlyDate = hourlyDateFormat.parse(hourly.time);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    String hourlyDateLocal = hourlyDateFormat2.format(hourlyDate);
-                    xAxisIcon2[counter] = hourlyImageId;
-                    xAxisTxt2[counter] = hourlyDateLocal;
-                    hourlyData.put(hourlyDateLocal, hourly.temperature + "°");
-                    counter++;
-                }
-                hourlyWeatherData.add(hourlyData);
-                if (hourlyCount == 1) maxTemp2 = minTemp2 = Integer.parseInt(weather.hourlyList.get(0).temperature);
-                yAxisTxt2 = new String[maxTemp2 - minTemp2 + 1];
-                j = 0;
-                for (int i = maxTemp2; i >= minTemp2; i--) {
-                    yAxisTxt2[j] = i + "°";
-                    j++;
-                }
-                hourlyLineChart.setxAxisPointsTxt(xAxisTxt2);
-                hourlyLineChart.setyAxisPointsTxt(yAxisTxt2);
-                hourlyLineChart.setxAxisIcon(xAxisIcon2);
-                hourlyLineChart.setDataList(hourlyWeatherData);
-            }else {
-                if(hourlyLayout.getVisibility() == View.VISIBLE)hourlyLayout.setVisibility(View.GONE);
+            hourlyLineChart.setxAxisPointsTxt(xAxisTxt2);
+            hourlyLineChart.setyAxisPointsTxt(yAxisTxt2);
+            hourlyLineChart.setxAxisIcon(xAxisIcon2);
+            hourlyLineChart.setDataList(hourlyWeatherData);
+            hourlyLineChart.setVisibility(View.VISIBLE);
+        } else {
+            if (hourlyLayout.getVisibility() == View.VISIBLE){
+                hourlyLayout.setVisibility(View.GONE);
             }
+        }
+    }
 
-            //index
-            IndexItem comfortIndex = new IndexItem("舒适度指数",
-                    weather.suggestion.comfortIndex.shortDes,
-                    weather.suggestion.comfortIndex.detailTxt, R.drawable.indice_ssd);
-            IndexItem carWashIndex = new IndexItem("洗车指数",
-                    weather.suggestion.carWashIndex.shortDes,
-                    weather.suggestion.carWashIndex.detailTxt, R.drawable.indice_xc);
-            IndexItem dressIndex = new IndexItem("穿衣指数",
-                    weather.suggestion.dressIndex.shortDes,
-                    weather.suggestion.dressIndex.detailTxt, R.drawable.indice_cy);
-            IndexItem coldIndex = new IndexItem("感冒指数",
-                    weather.suggestion.coldIndex.shortDes,
-                    weather.suggestion.coldIndex.detailTxt, R.drawable.indice_gm);
-            IndexItem sportIndex = new IndexItem("运动指数",
-                    weather.suggestion.sportIndex.shortDes,
-                    weather.suggestion.sportIndex.detailTxt, R.drawable.indice_yd);
-            IndexItem travelIndex = new IndexItem("旅游指数",
-                    weather.suggestion.travelIndex.shortDes,
-                    weather.suggestion.travelIndex.detailTxt, R.drawable.indice_ly);
-            IndexItem uvIndex = new IndexItem("紫外线指数",
-                    weather.suggestion.uvIndex.shortDes,
-                    weather.suggestion.uvIndex.detailTxt, R.drawable.indice_zwx);
-            IndexItem flIndex = new IndexItem("风力指数",
-                    weather.now.windInfo.fengsu + " m/s",
-                    weather.now.windInfo.fengli, R.drawable.indice_fl);
-            indexData.clear();
-            indexData.add(comfortIndex);
-            indexData.add(carWashIndex);
-            indexData.add(dressIndex);
-            indexData.add(coldIndex);
-            indexData.add(sportIndex);
-            indexData.add(travelIndex);
-            indexData.add(uvIndex);
-            indexData.add(flIndex);
-            indexAdapter2.notifyDataSetChanged();
+    private void loadIndice(Weather weather){
+        IndexItem comfortIndex = new IndexItem("舒适度指数",
+                weather.suggestion.comfortIndex.shortDes,
+                weather.suggestion.comfortIndex.detailTxt, R.drawable.indice_ssd);
+        IndexItem carWashIndex = new IndexItem("洗车指数",
+                weather.suggestion.carWashIndex.shortDes,
+                weather.suggestion.carWashIndex.detailTxt, R.drawable.indice_xc);
+        IndexItem dressIndex = new IndexItem("穿衣指数",
+                weather.suggestion.dressIndex.shortDes,
+                weather.suggestion.dressIndex.detailTxt, R.drawable.indice_cy);
+        IndexItem coldIndex = new IndexItem("感冒指数",
+                weather.suggestion.coldIndex.shortDes,
+                weather.suggestion.coldIndex.detailTxt, R.drawable.indice_gm);
+        IndexItem sportIndex = new IndexItem("运动指数",
+                weather.suggestion.sportIndex.shortDes,
+                weather.suggestion.sportIndex.detailTxt, R.drawable.indice_yd);
+        IndexItem travelIndex = new IndexItem("旅游指数",
+                weather.suggestion.travelIndex.shortDes,
+                weather.suggestion.travelIndex.detailTxt, R.drawable.indice_ly);
+        IndexItem uvIndex = new IndexItem("紫外线指数",
+                weather.suggestion.uvIndex.shortDes,
+                weather.suggestion.uvIndex.detailTxt, R.drawable.indice_zwx);
+        IndexItem flIndex = new IndexItem("风力指数",
+                weather.now.windInfo.fengsu + " m/s",
+                weather.now.windInfo.fengli, R.drawable.indice_fl);
+        indexData.clear();
+        indexData.add(comfortIndex);
+        indexData.add(carWashIndex);
+        indexData.add(dressIndex);
+        indexData.add(coldIndex);
+        indexData.add(sportIndex);
+        indexData.add(travelIndex);
+        indexData.add(uvIndex);
+        indexData.add(flIndex);
+        indexGridView.setVisibility(View.VISIBLE);
+        indexAdapter2.notifyDataSetChanged();
+    }
+
+    private void showWeatherInfo(Weather weather) {
+        if (weather != null) {
+            if (weather.status.equals("ok")) {
+
+                loadTemprature(weather);
+                //daily
+                loadDaily(weather);
+
+                //hourly
+                loadHourly(weather);
+
+                //indice
+                loadIndice(weather);
+
+            } else {
+                AlertDialog dialog = new AlertDialog.Builder(this).create();
+                dialog.setMessage("数据接口异常！status:" + weather.status);
+                dialog.setCancelable(false);
+                dialog.setButton(AlertDialog.BUTTON_POSITIVE, "确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+                dialog.show();
+            }
         }
     }
 
@@ -330,11 +381,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             case R.id.btn_refresh:
                 if (weatherId != null){
+                    //触发控件重绘
+                    dailyLineChart.setVisibility(View.INVISIBLE);
+                    hourlyLineChart.setVisibility(View.INVISIBLE);
+                    indexGridView.setVisibility(View.INVISIBLE);
+                    weaUpdateTime = System.currentTimeMillis();
                     requestWeather(weatherId);
-                    //invalidate没起作用
-//                    dailyLineChart.invalidate();
-//                    hourlyLineChart.invalidate();
-                    Snackbar.make(v, "天气已更新", Snackbar.LENGTH_SHORT).show();
+                    //显示过快
+//                    Snackbar.make(v, "天气已更新", Snackbar.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.btn_more:
@@ -416,6 +470,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                             getDefaultSharedPreferences(WeatherActivity.this).edit();
                     editor.putString("weather_id", weatherId);
                     editor.putString(weatherId, responseText);
+                    editor.putString("upd_time", System.currentTimeMillis() + "");
                     editor.apply();
                     runOnUiThread(new Runnable() {
                         @Override

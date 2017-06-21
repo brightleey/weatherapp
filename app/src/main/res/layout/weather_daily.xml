@@ -13,6 +13,7 @@
         lc:circleRadius="3dp"
         lc:showYAxis="false"
         lc:axisTextColor="#ffffff"
+        android:visibility="invisible"
         android:id="@+id/daily_linechart"/>
 
 </LinearLayout>

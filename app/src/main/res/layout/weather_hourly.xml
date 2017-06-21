@@ -30,6 +30,7 @@
         lc:circleRadius="3dp"
         lc:showYAxis="false"
         lc:axisTextColor="#ffffff"
+        android:visibility="invisible"
         android:id="@+id/hourly_linechart"/>
 
 </LinearLayout>

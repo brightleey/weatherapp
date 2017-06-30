@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -75,6 +76,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private FrameLayout rootLayout;
     private DrawerLayout drawerLayout;
     private LinearLayout hourlyLayout;
+    private SwipeRefreshLayout refreshLayout;
     private TextView weaAddr, weaTemp, weaWeather, weaDate, weaAqi, weaUpdTime;
     private ImageView menuIcon, weaIcon, weaBg;
     private String weatherId;
@@ -116,6 +118,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private void initViews(){
         rootLayout = (FrameLayout) findViewById(R.id.root_layout);
         hourlyLayout = (LinearLayout) findViewById(R.id.wea_hourly_layout);
+        refreshLayout = (SwipeRefreshLayout) findViewById(R.id.refresh_layout);
         menuIcon = (ImageView)findViewById(R.id.wea_menu_icon);
         weaIcon = (ImageView) findViewById(R.id.wea_icon);
         drawerLayout = (DrawerLayout) findViewById(R.id.wea_drawerlayout);
@@ -134,6 +137,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         dailyLineChart = (LineChart) findViewById(R.id.daily_linechart);
         hourlyLineChart = (LineChart) findViewById(R.id.hourly_linechart);
         indexGridView = (BorderGridView) findViewById(R.id.grid_view);
+        indexGridView.setFocusable(false);
 
         indexAdapter2 = new IndexAdapter2(this, R.layout.index_item2, indexData);
         indexGridView.setAdapter(indexAdapter2);
@@ -147,6 +151,18 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         menuIcon.setOnClickListener(this);
         btnMore.setOnClickListener(this);
         btnRefresh.setOnClickListener(this);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                //触发控件重绘
+                indexGridView.setVisibility(View.INVISIBLE);
+                hourlyLineChart.setVisibility(View.INVISIBLE);
+                dailyLineChart.setVisibility(View.INVISIBLE);
+
+                weaUpdateTime = System.currentTimeMillis();
+                requestWeather(weatherId);
+            }
+        });
     }
 
     private void initDatas(){
@@ -157,6 +173,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         String updateTime = spf.getString("upd_time", "");
         if (!TextUtils.isEmpty(updateTime)){
             weaUpdateTime = Long.valueOf(updateTime);
+        }else{
+            weaUpdateTime = System.currentTimeMillis();
         }
         if (!TextUtils.isEmpty(weatherString)){
             Weather weather = handleWeatherResponse(weatherString);
@@ -351,10 +369,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 loadTemprature(weather);
                 //daily
                 loadDaily(weather);
-
                 //hourly
                 loadHourly(weather);
-
                 //indice
                 loadIndice(weather);
 
@@ -382,9 +398,10 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.btn_refresh:
                 if (weatherId != null){
                     //触发控件重绘
-                    dailyLineChart.setVisibility(View.INVISIBLE);
-                    hourlyLineChart.setVisibility(View.INVISIBLE);
                     indexGridView.setVisibility(View.INVISIBLE);
+                    hourlyLineChart.setVisibility(View.INVISIBLE);
+                    dailyLineChart.setVisibility(View.INVISIBLE);
+
                     weaUpdateTime = System.currentTimeMillis();
                     requestWeather(weatherId);
                     //显示过快
@@ -461,7 +478,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private void requestWeather(final String weatherId){
         if (!TextUtils.isEmpty(weatherId)) {
-            HttpUtil.showProgressDialog(this);
+            refreshLayout.setRefreshing(true);
             HttpUtil.httpRequest("https://free-api.heweather.com/v5/weather?city="
                     + weatherId + "&key=" + WEATHER_API_KEY, new HttpCallbackListener() {
                 @Override
@@ -470,14 +487,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                             getDefaultSharedPreferences(WeatherActivity.this).edit();
                     editor.putString("weather_id", weatherId);
                     editor.putString(weatherId, responseText);
-                    editor.putString("upd_time", System.currentTimeMillis() + "");
+                    editor.putString("upd_time", weaUpdateTime + "");
                     editor.apply();
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             Weather weather = handleWeatherResponse(responseText);
                             showWeatherInfo(weather);
-                            HttpUtil.closeProgressDialog();
+                            refreshLayout.setRefreshing(false);
                         }
                     });
                 }
@@ -487,7 +504,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            HttpUtil.closeProgressDialog();
+                            refreshLayout.setRefreshing(false);
                             Toast.makeText(WeatherActivity.this, "获取天气失败", Toast.LENGTH_LONG).show();
                         }
                     });
